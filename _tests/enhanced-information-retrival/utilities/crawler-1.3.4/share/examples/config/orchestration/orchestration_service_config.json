@@ -1,0 +1,10 @@
+{
+  "retrieve_and_rank": {
+    "cluster_id": "YOUR_CLUSTER_ID",
+    "service_instance_id" : "YOUR_SERVICE_INSTANCE_ID",
+    "search_collection":"YOUR_SEARCH_COLLECTION_NAME",
+    "fields" : {
+      "include" : [ "body", "contentHtml", "contentText", "id", "indexedTimestamp", "searchText", "sourceUrl", "title" ]
+    }
+  }
+}

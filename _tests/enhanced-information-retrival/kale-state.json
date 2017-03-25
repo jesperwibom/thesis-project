@@ -1,0 +1,17 @@
+{
+  "login" : {
+    "username" : "jesper@topp.se",
+    "cf-token" : "eyJhbGciOiJIUzI1NiJ9.eyJqdGkiOiJiYTA1YTFlMC1hY2VkLTQ2ODAtOWUxZi1mZDQ5YTIxMTA2NzYiLCJzdWIiOiI1MGJkNWYzZi1mODY1LTQ3ZDYtYTI1Yy0yMDI2NWY5ZjJjZDEiLCJzY29wZSI6WyJvcGVuaWQiLCJ1YWEudXNlciIsImNsb3VkX2NvbnRyb2xsZXIucmVhZCIsInBhc3N3b3JkLndyaXRlIiwiY2xvdWRfY29udHJvbGxlci53cml0ZSJdLCJjbGllbnRfaWQiOiJjZiIsImNpZCI6ImNmIiwiYXpwIjoiY2YiLCJncmFudF90eXBlIjoicGFzc3dvcmQiLCJ1c2VyX2lkIjoiNTBiZDVmM2YtZjg2NS00N2Q2LWEyNWMtMjAyNjVmOWYyY2QxIiwib3JpZ2luIjoidWFhIiwidXNlcl9uYW1lIjoiamVzcGVyQHRvcHAuc2UiLCJlbWFpbCI6Implc3BlckB0b3BwLnNlIiwiYXV0aF90aW1lIjoxNDkwMTA5MDA4LCJyZXZfc2lnIjoiNGRmNjJiNzAiLCJpYXQiOjE0OTAxMDkwMDgsImV4cCI6MTQ5MTMxODYwOCwiaXNzIjoiaHR0cHM6Ly91YWEubmcuYmx1ZW1peC5uZXQvb2F1dGgvdG9rZW4iLCJ6aWQiOiJ1YWEiLCJhdWQiOlsiY2YiLCJvcGVuaWQiLCJ1YWEiLCJjbG91ZF9jb250cm9sbGVyIiwicGFzc3dvcmQiXX0.2mul6lnsGF7PMXKga3QolLv2Q91a4D_vRf_tuxEQGKM",
+    "endpoint" : "https://api.eu-gb.bluemix.net"
+  },
+  "org-space" : {
+    "org" : "JesperProject",
+    "space" : "JesperUK",
+    "guid" : {
+      "org" : "40c73567-10e3-4d90-b753-1ed881be92cc",
+      "space" : "0bf77212-31bd-4185-a801-d28b193b2838"
+    }
+  },
+  "user-selections" : { },
+  "services" : { }
+}

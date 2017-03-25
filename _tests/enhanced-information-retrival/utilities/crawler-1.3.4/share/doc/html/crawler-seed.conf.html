@@ -1,0 +1,52 @@
+<h1>Configuring crawl seeds</h1><p>Seeds are the starting points of a crawl, and are used by the data crawler to retrieve data from the resource that is identified by that seed. Typically, seeds configure URLs to access protocol-based resources such as fileshares, SMB shares, databases, and other data repositories that are accessible by various web protocols. Moreover, different seed URLs have different capabilities.</p><p>Seeds can also be repository-specific, to enable crawling of specific third-party applications such as customer relationship management (CRM) systems, product life cycle (PLC) systems, content management systems (CMS), cloud-based applications, and web database applications.</p><p>The data crawler currently provides crawl seeds that support file connectors for the following repository types:</p>
+<ul>
+  <li>Filesystem</li>
+  <li>Databases, via JDBC</li>
+  <li>CMIS (Content Management Interoperability Services)</li>
+  <li>SMB (Server Message Block), CIFS (Common Internet Filesystem), or Samba fileshares</li>
+  <li>SharePoint and SharePoint Online</li>
+  <li>Box</li>
+</ul><p>A crawl seed configuration template is also provided, which allows you to customize a crawl seed for a custom connector.</p><h2>Getting started:</h2><p>When crawling data repositories, the crawler begins at a user-specified seed URL, and begins downloading pages of information. The crawler also locates links in the downloaded pages, and schedules the newly-discovered pages for further crawling.</p><p>Configuration information is used to determine which pages need to be crawled, and how to crawl them. This file explains the options that you can configure for each connector&rsquo;s crawl seed file.</p><p><strong>Note</strong>: Each crawl seed configuration file works with a corresponding file connector configuration file; file connector options are described separately.</p><h3>Configuring the Filesystem Crawl Seed</h3><p>The following values can be configured for the Filesystem crawl seed file. To set these values, open the file <code>config/seeds/filesystem-seed.conf</code> and specify the following values specific to your use cases:</p>
+<ul>
+  <li><strong>url</strong> - Newline-separated list of files and folders to crawl. UNIX users can use a path such as <code>/usr/local/</code>.<br/>The URLs must start with <code>sdk-fs://</code>. So to crawl, for example, <code>/home/watson/mydocs</code>, the value of this URL would be <code>sdk-fs:///home/watson/mydocs</code> - the third <code>/</code> is necessary!<br/><strong>Note</strong>: The Filesystem connector uses a custom protocol, <code>sdk-fs://</code>, to create a valid URL. Do not prepend <code>file://</code> to the listed paths; the URLs must start with <code>sdk-fs://</code>.</li>
+  <li><strong>hops</strong> - Internal use only.</li>
+  <li><strong>default-allow</strong> - Internal use only.</li>
+</ul><h3>Configuring the Database Crawl Seed</h3><p>The following values can be configured for the Database crawl seed file. To set these values, open the file <code>config/seeds/database-seed.conf</code> and specify the following values specific to your use cases:</p>
+<ul>
+  <li><strong>url</strong> - The URL of the table or view to retrieve. Defines your custom SQL database seed URL. The structure is:</li>
+</ul><p> <code>database-system://host:port/database?[per=num]&amp;[sql=SQL]</code></p><p>Testing a seed URL will show all of the enqueued URLs. For example, testing the following URL for a database containing 200 records:</p><p> <code>sqlserver://test.mycompany.com:1433/WWII_Navy/?per=100&amp;sql=select%20*%20from%20vessel&amp;</code></p><p>shows the following enqueued URLs:</p><p> <code>sqlserver://test.mycompany.com:1433/WWII_Navy/?key-val=0&amp;</code></p><p> <code>sqlserver://test.mycompany.com:1433/WWII_Navy/?key-val=100&amp;</code></p><p> <code>sqlserver://test.mycompany.com:1433/WWII_Navy/?key-val=200&amp;</code></p><p>While testing the following URL will show the data retrieved from row 43:</p><p> <code>sqlserver://test.mycompany.com:1433/WWII_Navy/?per=1&amp;key-val=43</code><br/>* <strong>hops</strong> - Internal use only.<br/>* <strong>default-allow</strong> - Internal use only.<br/>* <strong>user-password</strong> - Credentials for the database system. The username and password need to be separated by a <code>:</code>, and the password must be encrypted with the vcrypt program that ships with the Data Crawler. For example <code>username:[[vcrypt/3]]passwordstring</code>.<br/>* <strong>max-data-size</strong> - Maximum size of the data for a document. This is the largest block of memory that will be loaded at one time. Only increase this limit if you have sufficient memory on your computer.<br/>* <strong>filter-exact-duplicates</strong> - Internal use only.<br/>* <strong>jdbc-class</strong> (Extender option) - When specified, this string will override the JDBC class used by the connector when <code>(other)</code> is chosen as the database system.<br/>* <strong>connection-string</strong> (Extender option) - When specified, this string will override the automatically generated JDBC connection string. This allows you to provide more detailed configuration about the database connection, such as load-balancing or SSL connections. For example: <code>jdbc:netezza://127.0.0.1:5480/databasename</code>.<br/>* <strong>save-frequency-for-resume</strong> (Extender option) - Specifies the name of a column or associated label, in order to be able to resume a crawl or do a partial refresh. The seed saves the name of this column at regular intervals as it proceeds with the crawl, and saves it again once the last row of your database has been crawled. When resuming the crawl or refreshing it, the crawl begins with the row that is identified in the saved value for this field.</p><h3>Configuring the CMIS Crawl Seed</h3><p>The following values can be configured for the CMIS crawl seed file. To set these values, open the file <code>config/seeds/cmis-seed.conf</code> and modify the following values specific to your use cases:</p>
+<ul>
+  <li><p><strong>url</strong> - The URL of a folder from the CMIS repository to be used as a starting point of the crawl, for example:</p></li>
+  <li><p><code>cmis://alfresco.test.com:8080/alfresco/cmisatom?folderToProcess=workspace://SpacesStore/guid</code><br/> To crawl from the root folder, you need to give the URL as:</p></li>
+  <li><p><code>cmis://alfresco.test.com:8080/alfresco/cmisatom?folderToProcess=</code></p></li>
+  <li><strong>at</strong> - Unused option.</li>
+  <li><strong>default-allow</strong> - Internal use only.</li>
+</ul><h3>Configuring the Samba Crawl Seed</h3><p>The following values can be configured for the Samba crawl seed file. To set these values, open the file <code>config/seeds/samba-seed.conf</code> and modify the following values specific to your use cases:</p>
+<ul>
+  <li><p><strong>url</strong> - A newline-separated list of shares to crawl, for example:</p></li>
+  <li><p><code>smb://share.test.com/office</code></p></li>
+  <li><code>smb://share.test.com/cash/money/change</code></li>
+  <li><code>smb://share.test.com/C$/Program Files</code></li>
+  <li><p><strong>hops</strong> - Internal use only.</p></li>
+  <li><strong>default-allow</strong> - Internal use only.</li>
+</ul><h3>Configuring the SharePoint Crawl Seed</h3><p>The following additional values can be configured for the SharePoint crawl seed file. To set these values, open the file <code>config/seeds/sharepoint-seed.conf</code> and modify the following values specific to your use cases:</p>
+<ul>
+  <li><p><strong>url</strong> - A newline-separated list of SharePoint web applications or site collections to crawl, for example:</p></li>
+  <li><p><code>io-sp://a.com</code></p></li>
+  <li><code>io-sp://b.com:83/site</code></li>
+  <li><code>io-sp://c.com/site2</code></li>
+</ul><p>The sub-sites of these sites will also be crawled (unless they are excluded by other crawling rules).<br/>* <strong>filter-url</strong> - A newline-separated list of SharePoint web applications or site collections to crawl, for example:</p>
+<ul>
+  <li><code>http://a.com</code></li>
+  <li><code>http://b.com:83/site</code></li>
+  <li><code>http://c.com/site2</code></li>
+  <li><p><strong>hops</strong> - Internal use only.</p></li>
+  <li><strong>n-concurrent-requests</strong> - Internal use only.</li>
+  <li><strong>delay</strong> - Internal use only.</li>
+  <li><strong>default-allow</strong> - Internal use only.</li>
+  <li><strong>seed-protocol</strong> - Sets the seed protocol for children of the site collection. Necessary when the site collection&rsquo;s protocol is SSL, HTTP, or HTTPS. This value must be set the same as the site collection&rsquo;s protocol.</li>
+</ul><h3>Configuring the Box Seed</h3><p>The following values can be configured for the Box crawl seed file. To set these values, open the file <code>config/seeds/box-seed.conf</code> and specify the following values specific to your use cases:</p>
+<ul>
+  <li><strong>url</strong> - The URL to be used as the starting point of the crawl. The default value is <code>box://app.box.com/</code>.</li>
+  <li><strong>default-allow</strong> - Internal use only.</li>
+</ul><h2>SEE ALSO</h2><p>crawler(1)</p><p>vcrypt(1)</p><p>crawler.conf(5)</p><p>crawler-options.conf(5)</p><p>orchestration_service.conf(5)</p>

@@ -1,0 +1,62 @@
+<h1>crawler(1) - A crawler to move data from point A to point B</h1><h2>SYNOPSIS</h2><p>Usage: crawler [ crawl | testit | restart | resume | refresh ] [ options ]</p><h2>DESCRIPTION</h2><p>The Data Crawler is used to crawl various repositories of data, such as content management systems and filesystems,<br/>and then push the resulting documents to a remote service.</p><h2>GLOBAL OPTIONS</h2>
+<pre><code>--version
+    Displays program version
+--help
+    Displays this usage text
+</code></pre><h2>COMMANDS</h2><h3>crawl [ options ]</h3><p>Runs a crawl with the current configuration.</p>
+<pre><code>-c &lt;value&gt; | --config &lt;value&gt;  # Specifies the configuration file to use. Default is &quot;config/crawler.conf&quot;.
+--pii-checking &lt;value&gt;         # Toggles PII checking
+</code></pre><h3>testit [ options ]</h3><p>Runs a test crawl, which crawls only the seed URL and displays any enqueued URLs. If the seed URL results in<br/>indexable content (e.g., it is a document), then that content is sent to the output adapter and the content<br/>is printed to the screen. If the seed URL retrieval causes URLs to be enqueued, those URLs will be displayed,<br/>and no content will be sent to the output adapter. By default, five enqueued URLs are displayed.</p>
+<pre><code>-c &lt;value&gt; | --config &lt;value&gt;  # Specifies the configuration file to use. Default is &quot;config/crawler.conf&quot;.
+-l &lt;n&gt; | --limit &lt;n&gt;           # Limits the number of enqueued URLs that are displayed.
+--pii-checking &lt;value&gt;         # Toggles PII checking
+</code></pre><h3>restart [ options ]</h3><p>Runs a Restart crawl; starts a new crawl with the current configuration.</p>
+<pre><code>-c &lt;value&gt; | --config &lt;value&gt;  # Specifies the configuration file to use.
+--pii-checking &lt;value&gt;         # Toggles PII checking
+</code></pre><h3>resume [ options ]</h3><p>Resumes a crawl from where it stopped.</p>
+<pre><code>-c &lt;value&gt; | --config &lt;value&gt;  # Specifies the configuration file to use.
+--pii-checking &lt;value&gt;         # Toggles PII checking
+</code></pre><h3>refresh [ options ]</h3><p>Refreshes a previous crawl.</p>
+<pre><code>-c &lt;value&gt; | --config &lt;value&gt;  # Specifies the configuration file to use.
+--pii-checking &lt;value&gt;         # Toggles PII checking
+</code></pre><h2>EXAMPLES</h2><p>Run a crawl using the configuration file at <code>config/crawler.conf</code>:</p>
+<pre><code>crawler crawl
+</code></pre><p>Run a test using the configuration file at <code>config/crawler.conf</code>:</p>
+<pre><code>crawler testit
+</code></pre><p>Run a crawl using the configuration file at <code>/home/watson/office-share.conf</code>:</p>
+<pre><code>crawler crawl --config /home/watson/office-share.conf
+</code></pre><p>Display usage, including version:</p>
+<pre><code>crawler --help
+</code></pre><h2>CONFIGURATION</h2><p><code>crawler</code> requires a configuration file for its options. Examples of configuration files are provided in the <code>share</code> directory<br/>within <code>crawler</code>&rsquo;s installation directory. Copy these examples and modify them. <em>Do not modify the examples in place.</em></p><p>Without specifying the <code>--config | -c</code> option, <code>crawler</code> will look for its configuration in the <code>config</code> directory of the<br/>directory in which <code>crawler</code> is started. That is, <code>crawler</code> will look for <code>config/crawler.conf</code>.</p><h2>DIAGNOSTICS</h2><p>Use these features to diagnose problems.</p><h3>Debugging</h3><p>Activates debugging mode. In the <code>crawler.conf</code> file, set:</p>
+<pre><code>debugging.full_node_debugging = true
+</code></pre><h3>Logging</h3><p>Enables logging. In the <code>log4j_custom.properties</code> file, set:</p>
+<pre><code>log4j.rootLogger=INFO, Console, Log
+</code></pre><p>This is the default logging level for file output. For the console log, the default is:</p>
+<pre><code>log4j.appender.Console.Threshold=WARN
+</code></pre><p>Logging levels may be set to the following values:</p>
+<pre><code>OFF - The highest possible rank, this is intended to turn off logging.
+FATAL - Desginates very severe error events that will presumably lead the application to abort.
+ERROR - Designates error events that may still allow the application to continue running.
+WARN - Designates potentially harmful situations.
+INFO - Designates informational messages highlighting the progress of the application at a coarse-grained level.
+DEBUG - Designates fine-grained informational events that are most useful to debug an application.
+TRACE - Designates finer-grained informational events than DEBUG.
+ALL - The lowest possible rank, this is intended to turn on all logging.
+</code></pre><h2>THROTTLING</h2><p>Defines sizing limitations, to help manage throughput. In the <code>crawler.conf</code> file, set:</p><p><code>shutdown_timeout</code> Specifies the timeout value, in minutes, before shutting down the application; the default value is 10.</p>
+<pre><code>shutdown_timeout = &lt;n&gt;
+</code></pre><p><code>output_limit</code> is the highest number of indexable items that the portable crawler will send simultaneously<br/>to the output adapter, awaiting a return; the default value is 10. This may be further limited by cores available to do work.</p>
+<pre><code>output_limit = &lt;n&gt;
+</code></pre><p><code>input_limit</code> Limits the number of URLs that can be requested from the connector at one time; the default value is 3.</p>
+<pre><code>input_limit = &lt;n&gt;
+</code></pre><p><code>output_timeout</code> is the amount of time, in seconds, before the portable crawler gives up on a request<br/>to the output adapter, and then removes the item from the limit queue, to allow more processing. The default value is 150.</p>
+<pre><code>output_timeout = &lt;n&gt;
+</code></pre><p>Consideration should be given to the constraints imposed by the output adapter as those constraints may relate to the<br/>limits defined here. The <code>output_limit</code> defined above only relates to how many indexable objects can be sent to the<br/>output adapter at once. Once an indexable object is sent to the output adapter, it is &ldquo;on the clock,&rdquo; as defined by<br/>the <code>output_timeout</code> variable. It is possible that the output adapter itself has a throttle preventing it from being<br/>able to process as many inputs as it receives. For instance, the orchestration output adapter may have a connection<br/>pool, configurable for HTTP connections to the service. If it defaults to 8, for example, and if you set the<br/><code>output_limit</code> to a number greater than what is configured for that connection pool, then you will have processes, on<br/>the clock, waiting for a turn to execute. You may then experience timeouts.</p><p><code>num_threads</code> The number of parallel threads that can be run at one time. This value can be either an integer,<br/>which specifies the number of parallel threads directly, or it can be a string, with the format <code>&quot;xNUM&quot;</code>, specifying<br/>the multiplication factor of the number of available processors. The default value is &ldquo;x1.5&rdquo;, or 1.5 times the number of available processors (as taken with <code>Runtime.availableProcessors</code>).</p>
+<pre><code>num_threads = &lt;n&gt;
+</code></pre><p>The formula for calculating parallelism in the Data Crawler pool is: <code>min(maxThreads, max(minThreads, numThreads))</code>.</p><h2>ENVIRONMENT VARIABLE <code>CRAWLER_OPTS</code></h2><p>Following are properties that can be passed to <code>crawler</code> via the <code>CRAWLER_OPTS</code> environment variable, listed with default values.</p><p>Pass them like so:</p>
+<pre><code>CRAWLER_OPTS=&quot;-Dproperty=value -Dproperty=value&quot; crawler
+</code></pre><p>These should only be changed for debugging, and only under the direction of IBM Support.</p><h3>cfa.java_bin</h3><p><code>cfa.java_bin</code> can change the <code>java</code> command used to start the Connector Framework Input Adapter. By default, <code>crawler</code> uses<br/>the same <code>java</code> binary that is used to launch <code>crawler</code> itself.</p><p>This can also be changed by setting the <code>java.home</code> property, which will then be used to calculate the path to the <code>java</code> executable.</p><h3>cfa.lib_dir</h3><p><code>cfa.lib_dir</code> changes the path to the Connector Framework&rsquo;s <code>lib</code> directory. This should rarely need to be changed. By default,<br/><code>crawler</code> uses the <code>lib</code> directory inside the calculated path to the Connector Framework, generally simply <code>connectorFramework</code>.</p><h3>cfa.framework_jars_dir</h3><p><code>cfa.framework_jars_dir</code> changes the path to the Connector Framework&rsquo;s jars directory, which is, by default, in <code>connectorFramework/&lt;version&gt;/lib/java</code>.</p><h3>cfa.plugins_dir</h3><p><code>cfa.plugins_dir</code> specifies the path to the Connector Framework&rsquo;s plugins directory, where the actual Connectors are stored.<br/>By default, this is built from the <code>framework_jars_dir</code> and will be <code>connectorFramework/&lt;version&gt;/lib/java/plugins</code>.</p><h2>KNOWN LIMITATIONS</h2><p>Details known limitations in the current release of the Data Crawler</p>
+<ul>
+  <li>The Data Crawler may hang when running the Filesystem connector with an invalid or missing URL.</li>
+  <li>Configure the <code>urls_to_filter</code> value in the <code>config/crawler.conf</code> file such that all the whitelist URLs or RegExes are included in a single RegEx expression.</li>
+  <li>The path to the configuration file passed in the <code>--config | -c</code> option must be a qualified path. That is, it must be in the relative formats <code>config/crawler.conf</code> or <code>./crawler.conf</code>, or absolute path <code>/path/to/config/crawler.conf</code>. Specifying just <code>crawler.conf</code> is possible if and only if files referenced using <code>include</code> in the <code>crawler.conf</code> file are in-lined instead of using <code>include</code>. For example, <code>discovery/discovery_service.conf</code> is <code>include</code>&rsquo;d in order to make configuration easier to read. Its content must be copied into <code>crawler.conf</code> within the <code>output_adapter.discovery_service</code> key in order to use an unqualified path in the config option.</li>
+</ul><h2>CHANGE LOG</h2><p>See the <code>changelog.txt</code> file in your installation directory for a list of changes in this release.</p><h2>AUTHOR</h2><p>IBM Watson - <a href="https://www.ibm.com/smarterplanet/us/en/ibmwatson/">https://www.ibm.com/smarterplanet/us/en/ibmwatson/</a></p><p>Made by yinz in Pittsburgh.</p><h2>SEE ALSO</h2><p>vcrypt(1)</p><p>crawler.conf(5)</p><p>crawler-options.conf(5)</p><p>crawler-seed.conf(5)</p><p>orchestration_service.conf(5)</p>

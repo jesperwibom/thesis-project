@@ -1,0 +1,131 @@
+.\" generated with Ronn/v0.7.3
+.\" http://github.com/rtomayko/ronn/tree/0.7.3
+.
+.TH "VCRYPT" "1" "March 2017" "IBM " "IBM Data Crawler Manual"
+.
+.SH "NAME"
+\fBvcrypt\fR \- A tool to encrypt and decrypt small amounts of data
+.
+.SH "SYNOPSIS"
+Usage: vcrypt \-\-decrypt|\-d \-\-encrypt|\-e \-\-genkey|\-g [ OPTIONS ]
+.
+.SH "DESCRIPTION"
+\fBvcrypt\fR is used primarily to encrypt passwords for use by the Connector Framework\.
+.
+.SS "A special note on key length"
+By default, a Java Virtual Machine implementation must support 128\-bit/16\-byte AES keys\. If the system has the Java Cryptographic Extensions installed, it may be able to use 256\-bit/32\-byte AES keys\. An error will show if a 32\-byte key is provided but unsupported by the JVM used to launch \fBvcrypt\fR\.
+.
+.SH "COMMANDS"
+.
+.SS "\-\-encrypt | \-e OPTIONS INPUT"
+Encrypt data provided in a file or in standard input\.
+.
+.SS "\-\-decrypt | \-d OPTIONS INPUT"
+Decrypt data provided in a file or in standard input\.
+.
+.SS "\-\-genkey | \-g"
+Generates an encryption key suitable for use with \fBvcrypt\fR to standard output\.
+.
+.SH "OPTIONS"
+.
+.SS "\-\-keyfile|\-k PATH/TO/ID_VCRYPT"
+Specify the path to the file containing an appropriate Base64\-encoded key, most likely generated using the \fB\-\-genkey|\-g\fR command\.
+.
+.SH "INPUT"
+.
+.SS "Encrypt mode"
+.
+.nf
+
+$FILE_CONTAINING_CLEARTEXT | \-\- $CLEARTEXT
+.
+.fi
+.
+.SS "Decrypt mode"
+.
+.nf
+
+$FILE_CONTAINING_CRYPTED_TEXT | \-\- $CRYPTED_TEXT
+.
+.fi
+.
+.SH "EXAMPLES"
+Generate a key and put it into file \fBid_vcrypt\fR:
+.
+.IP "" 4
+.
+.nf
+
+vcrypt \-\-genkey > id_vcrypt
+.
+.fi
+.
+.IP "" 0
+.
+.P
+Encrypt a password from standard input to standard output, written here via output redirection to \fBmy_secret_data\.txt\fR:
+.
+.IP "" 4
+.
+.nf
+
+\&\./vcrypt \-\-encrypt \-\-keyfile id_vcrypt \-\- "my secret password" > my_secret_data\.txt
+.
+.fi
+.
+.IP "" 0
+.
+.P
+You can also pipe the output to \fBxclip\fR, \fBpbcopy\fR, or similar to put the output on your operating system clipboard\.
+.
+.P
+Decrypt a password from a file:
+.
+.IP "" 4
+.
+.nf
+
+vcrypt \-\-decrypt \-\-keyfile id_vcrypt my_secret_data\.txt
+.
+.fi
+.
+.IP "" 0
+.
+.SH "PROPERTIES AND ENVIRONMENT VARIABLES"
+.
+.SS "VCRYPT_OPTS environment variable"
+This environment variable can be used to pass options to the \fBjava\fR command used to start \fBvcrypt\fR\.
+.
+.SS "vcrypt\.key property"
+Pass this as a \fB\-D\fR property in \fBVCRYPT_OPTS\fR with a 16\- or 32\-byte string to use a key at the command line, instead of passing the \fB\-\-keyfile | \-k keyfile\fR option\.
+.
+.P
+Example usage:
+.
+.IP "" 4
+.
+.nf
+
+VCRYPT_OPTIONS="\-Dvcrypt\.key=\'1234qwerasdfzxcv\'" vcrypt \-\-encrypt file_to_encrypt
+.
+.fi
+.
+.IP "" 0
+.
+.SS "VIV_VCRYPT_KEY environment variable"
+\fBvcrypt\fR allows usage of this environment variable to set the key\. It must be 16 or 32 bytes\.
+.
+.SH "SEE ALSO"
+crawler(1)
+.
+.P
+crawler\.conf(5)
+.
+.P
+crawler\-options\.conf(5)
+.
+.P
+crawler\-seed\.conf(5)
+.
+.P
+orchestration_service\.conf(5)

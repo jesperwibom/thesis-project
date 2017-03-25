@@ -1,0 +1,126 @@
+<h1>Configuring crawl options</h1><p>The data crawler collects the raw data that is eventually used to form search results for the IBM Watson Retrieve and Rank service.</p><p>The data crawler currently provides connectors to support data collection from the following repositories:</p>
+<ul>
+  <li>Filesystem</li>
+  <li>Databases, via JDBC</li>
+  <li>CMIS (Content Management Interoperability Services)</li>
+  <li>SMB (Server message Block, CIFS (Common Internet Filesystem), or Samba fileshares</li>
+  <li>SharePoint and SharePoint Online</li>
+  <li>Box</li>
+</ul><p>A connector configuration template is also provided, which allows you to customize a connector.</p><h2>Getting started:</h2><p>When crawling data repositories, the crawler begins at a user-specified starting seed URL, and begins downloading pages of information. The crawler also locates links in the downloaded pages, and schedules the newly-discovered pages for further crawling.</p><p>Configuration information is used to determine which pages need to be crawled, and how to crawl them. This file explains the options that you can configure for each connector.</p><p><strong>Note</strong>: Each connector also has a corresponding seed configuration file; seed configuration options are described separately.</p><h3>Configuring the Filesystem Connector</h3><p>The Filesystem Connector allows you to crawl files local to the data crawler installation. Following are the basic configuration options that are required to use the Filesystem connector. To set these values, open the file <code>config/connectors/filesystem.conf</code> and modify the following values specific to your use cases:</p>
+<ul>
+  <li><strong>protocol</strong> - The name of the connector protocol used for the crawl. Use <code>sdk-fs</code> for this connector.</li>
+  <li><strong>collection</strong> - This attribute is used to unpack temporary files.</li>
+  <li><strong>logging-config</strong> - Specifies the file used for configuring logging options; it must be formatted as a <code>log4j</code> XML string.</li>
+  <li><strong>classname</strong> - Java class name for the connector. The value to use this connector must be <code>plugin:filesystem.plugin@filesystem</code>.</li>
+</ul><h3>Configuring the Database Connector</h3><p>The database connector allows you to crawl a database by executing a custom SQL command and creating one document per row (record) and one content element per column (field). You can specify a column to be used as a unique key, as well as a column containing a timestamp representing the last-modification date of each record. The connector retrieves all records from the specified database, and can also be restricted to specific tables, joins, and so on in the SQL statement.</p><p>The Database connector allows you to crawl the following databases:</p>
+<ul>
+  <li>IBM DB2</li>
+  <li>MySQL</li>
+  <li>Oracle</li>
+  <li>PostgreSQL</li>
+  <li>Microsoft SQL Server</li>
+  <li>Sybase</li>
+  <li>Other SQL-compliant databases via a JDBC 3.0-compliant driver</li>
+</ul><p>The connector retrieves all records from the specified database and table.</p><p><strong>JDBC Drivers</strong><br/>The Database connector ships with Oracle JDBC (Java Database Connectivity) driver version 1.5. All third-party JDBC drivers shipped with data crawler are located in the <code>/lib/java/database</code> directory of your data crawler installation, where you can add, remove, and modify them as necessary. You can also use the <code>extra_jars_dir</code> setting in the <code>crawler.conf</code> file to specify another location.</p><p><strong><em>DB2 JDBC Drivers</em></strong><br/>Data crawler does not ship with the JDBC drivers for DB2 due to licensing issues. However, all DB2 installations in which you have installed JDBC support include the JAR files that the data crawler requires, in order to be able to crawl a DB2 installation. To crawl a DB2 instance, you must copy these files into the appropriate directory in your data crawler installation so that the Database connector can use them.</p><p>To enable the data crawler to crawl a DB2 installation, locate the <code>db2jcc.jar</code> and license (typically, <code>db2jcc_license_cu.jar</code>) JAR files in your DB2 installation, and copy those files to the <code>lib/java</code> subdirectory of your data crawler installation directory, or you can use the <code>extra_jars_dir</code> setting in the <code>crawler.conf</code> file to specify another location.</p><p><strong><em>MySQL JDBC Drivers</em></strong><br/>The data crawler does not ship with the JDBC drivers for MySQL because of possible license issues if they were delivered as part of the product. However, downloading the JAR file that contains the MySQL JDBC drivers and integrating that JAR file into your data crawler installation is quite easy to do:</p>
+<ol>
+  <li><p>Use a web browser to visit the MySQL download site, and locate the source and binary download link for the archive format that you want to use (typically zip for Microsoft Windows systems or a gzipped tarball for Linux systems). Click that link to initiate the download process. Registration may be required.</p></li>
+  <li><p>Use the appropriate <code>unzip archive-file-name</code> or <code>tar zxf archive-file-name</code> command to extract the contents of that archive, based on the type and name of the archive file that you download.</p></li>
+  <li><p>Change to the directory that was extracted from the archive file, and copy the JAR file from this directory to the <code>lib/java</code> subdirectory of your data crawler installation directory, or you can use the <code>extra_jars_dir</code> setting in the <code>crawler.conf</code> file to specify another location.</p></li>
+</ol><p>Following are the basic configuration options that are required to use the Database connector. To set these values, open the file <code>config/connectors/database.conf</code> and modify the following values specific to your use cases:</p>
+<ul>
+  <li><strong>protocol</strong> - The name of the connector protocol used for the crawl. The value for this connector is based on the database system to be accessed.</li>
+  <li><strong>collection</strong> - This attribute is used to unpack temporary files.</li>
+  <li><strong>classname</strong> - Java class name for the connector. The value to use this connector must be <code>plugin:database.plugin@database</code>.</li>
+  <li><strong>logging-config</strong> - Specifies the file used for configuring logging options; it must be formatted as a <code>log4j</code> XML string.</li>
+</ul><h3>Configuring the CMIS Connector</h3><p>The CMIS (Content Management Interoperability Services) connector lets you crawl CMIS-enabled CMS (Content Management System) repositories, such as Alfresco, Documentum or IBM Content Manager, and index the data that they contain.</p><p>Following are the basic configuration options that are required to use the CMIS connector. To set these values, open the file <code>config/connectors/cmis.conf</code> and modify the following values specific to your use cases:</p>
+<ul>
+  <li><strong>protocol</strong> - The name of the connector protocol used for the crawl. Use <code>cmis</code> for this connector.</li>
+  <li><strong>collection</strong> - This attribute is used to unpack temporary files.</li>
+  <li><strong>dns</strong> - Unused option.</li>
+  <li><strong>classname</strong> - Java class name for the connector. The value to use this connector must be <code>plugin:cmis-v1.1.plugin@connector</code>.</li>
+  <li><strong>logging-config</strong> - Specifies the file used for configuring logging options; it must be formatted as a <code>log4j</code> XML string.</li>
+  <li><strong>endpoint</strong> - The service endpoint URL of a CMIS-compliant repository. For example, the URL structures for SharePoint are:</li>
+  <li>For AtomPub binding:<br/> http://<server>:<port>/_vti_bin/cmis/rest?getRepositories</li>
+  <li>For WebServices binding:<br/> http://<server>:<port>/_vti_bin/cmissoapwsdl.aspx</li>
+  <li><p><strong>username</strong> - The user name of the CMIS repository user used to access the content. This user must have access to all the target folders and documents to be crawled and indexed.</p></li>
+  <li><strong>password</strong> - The password of the CMIS repository used to access the content. Password must NOT be encrypted; it should be given in plain text.</li>
+  <li><strong>repositoryid</strong> - The ID of the CMIS repository used to access the content for that specific repository.</li>
+  <li><strong>bindingtype</strong> - Identifies what type of binding is to be used to connect to a CMIS repository. Value is either <code>AtomPub</code> or <code>WebServices</code>.</li>
+  <li><strong>authentication</strong> - Identifies what type of authentication mechanism to use while contacting a CMIS-compatible repository: <code>Basic HTTP Authentication</code>, <code>NTLM</code>, or <code>WS-Security(Username token)</code>.</li>
+  <li><strong>enable-acl</strong> - Enables retrieving ACLs for crawled data. If you are not concerned about security for the documents in this collection, disabling this option will increase performance by not requesting this information with the document and not retrieving and encoding this information. Value is either <code>true</code> or <code>false</code>.</li>
+  <li><strong>user-agent</strong> - A header sent to the server when crawling documents.</li>
+  <li><strong>method</strong> - The method (<code>GET</code> or <code>POST</code>) by which parameters will be passed.</li>
+  <li><strong>url-logging</strong> - The extent to which crawled URLs are logged. Possible values are:</li>
+  <li><p><strong><em>full-logging</em></strong> - Log all information about the URL.</p></li>
+  <li><strong><em>refined-logging</em></strong> - Only log the information necessary to browse the crawler log and for the connector to function correctly; this is the default value.</li>
+  <li><strong><em>minimal-logging</em></strong> - Only log the minimum amount of information necessary for the connector to function correctly.</li>
+</ul><p>Setting this option to minimal-logging will reduce the size of the logs and gain a slight performance increase due to the smaller I/O associated with minimizing the amount of data that is being logged.<br/>* <strong>ssl-version</strong> - Specifies a verion of SSL to use for HTTPS connections. By default the strongest protocol available is used.</p><h3>Configuring the SMB/CIFS/Samba Connector</h3><p>The Samba connector allows you to crawl Server Message Block (SMB) and Common Internet Filesystem (CIFS) fileshares. This type of fileshare is common on Windows networks, and is also provided through the open source project <a href="https://www.samba.org/">Samba</a>.</p><p>Following are the basic configuration options that are required to use the Samba connector. To set these values, open the file <code>config/connectors/samba.conf</code> and modify the following values specific to your use cases:</p>
+<ul>
+  <li><strong>protocol</strong> - The name of the connector protocol used for the crawl. The value to use this connector is <code>smb</code>.</li>
+  <li><strong>collection</strong> - This attribute is used to unpack temporary files.</li>
+  <li><strong>classname</strong> - Java class name for the connector. The value to use this connector must be <code>plugin:smb.plugin@connector</code>.</li>
+  <li><strong>logging-config</strong> - Specifies the file used for configuring logging options; it must be formatted as a <code>log4j</code> XML string.</li>
+  <li><strong>username</strong> - The Samba username to authenticate with. If provided, domain and password must also be provided. If not provided, the guest account is used.</li>
+  <li><strong>password</strong> - The Samba password to authenticate with. If the username is provided, this is required. Password must be encrypted using the VCrypt library shipped with the data crawler.</li>
+  <li><strong>archive</strong> - Enables the Samba connector to crawl and index files that are compressed within archive files. Value is either <code>true</code> or <code>false</code>; default value is <code>false</code>.</li>
+  <li><strong>max-policies-per-handle</strong> - Specifies the maximum number of Local Security Authority (LSA) policies that can be opened for a single RPC handle. These policies define the access permissions that are required to query or modify a particular system under various conditions. The default value for this option is <code>255</code>.</li>
+  <li><strong>crawl-fs-metadata</strong> - Turning on this option will cause the data crawler to add a VXML document containing the available filesystem metadata about the file (creation date, last modified date, file attributes, etc.)</li>
+  <li><strong>enable-arc-connector</strong> - Unused option.</li>
+  <li><strong>disable-indexes</strong> - Newline-separated list of indexes to disable, which may result in a faster crawl, for example:</li>
+  <li><p>disable-url-index</p></li>
+  <li>disable-error-state-index</li>
+  <li>disable-crawl-time-index</li>
+  <li><strong>exact-duplicates-hash-size</strong> - Sets the size of the hash table used for resolving exact duplicates. Be very careful when modifying this number. The value that you select should be prime, and larger sizes can provide faster lookups but will require more memory, while smaller sizes can slow down crawls but will substantially reduce memory usage.</li>
+  <li><strong>user-agent</strong> - Unused option.</li>
+  <li><strong>timeout</strong> - Unused option.</li>
+  <li><strong>n-concurrent-requests</strong> - The number of requests that will be sent in parallel to a single IP address. The default is <code>1</code>.</li>
+  <li><strong>enqueue-persistence</strong> - Unused option.</li>
+</ul><h3>Configuring the SharePoint Connector</h3><p>The SharePoint connector allows you to crawl SharePoint Server and SharePoint Online objects and index the information that they contain. An object such as a document, user profile, site collection, blog, listitem, membership list, directory page, and more, can be indexed with its associated metadata. For list items and documents, indexes can include attachments.</p><p><strong>Note</strong>: The SharePoint connector respects the <code>noindex</code> attribute on all SharePoint objects, regardless of their specific type (blogs, documents, user profiles, and more). A single document is returned for each result.</p><p><strong>Important</strong>: The SharePoint account that you use to crawl your SharePoint sites must at least have full read-access privileges.</p><p>Following are the basic configuration options that are required to use the SharePoint connector. To set these values, open the file <code>config/connectors/sharepoint.conf</code> and modify the following values specific to your use cases:</p>
+<ul>
+  <li><strong>protocol</strong> - The name of the connector protocol used for the crawl. Use <code>io-sp</code> for this connector.</li>
+  <li><strong>collection</strong> - This attribute is used to unpack temporary files.</li>
+  <li><strong>classname</strong> - Java class name for the connector. The value to use this connector must be <code>plugin:io-sharepoint.plugin@connector</code>.</li>
+  <li><strong>logging-config</strong> - Specifies the file used for configuring logging options; it must be formatted as a <code>log4j</code> XML string.</li>
+  <li><strong>seed-url-type</strong> - Identifies what type of SharePoint object the provided seed URLs point to: site collections or web applications (also known as virtual servers).</li>
+  <li><p><strong><em>Site Collections</em></strong> - If the Seed URL Type is set to <code>Site Collections</code>, then only the children of the site collection<br/> referenced by the URL are crawled.</p></li>
+  <li><strong><em>Web Applications</em></strong> - If the Seed URL Type is set to <code>Web Applications</code>, then all of the site collections (and their children) belonging to the web applications referenced by each URL are crawled.</li>
+  <li><strong>auth-type</strong> - The authentication mechanism to use when contacting the SharePoint server: <code>BASIC</code>, <code>NTLM2</code>, <code>KERBEROS</code>, or <code>CBA</code>. The default authentication type is <code>NTLM2</code>.</li>
+  <li><strong>spUser</strong> - User name of the SharePoint user used to access the content. This user must have access to all the target sites and lists to be crawled and indexed, and must be able to retrieve and resolve the associated permissions. It is better to enter it with the domain name, like: <code>MYDOMAIN\\Administrator</code>.</li>
+  <li><strong>spPassword</strong> - Password of the SharePoint user used to access the content. Password must be encrypted using the vcrypt program shipped with the Data Crawler.</li>
+  <li><strong>cba-sts</strong> - The URL for the Security Token Service (STS) endpoint to attempt to authenticate the crawl user against. For SharePoint on-premise with ADFS, this should be your ADFS endpoint. If the Authentication Type is set to <code>CBA</code> (Claims Based Authentication), then this field is required.</li>
+  <li><strong>cba-realm</strong> - The relaying party trust identifier to use when requesting a security token from the STS. This is sometimes known as the &ldquo;AppliesTo&rdquo; value, or the &ldquo;Realm&rdquo;. For SharePoint Online, this should be the URL to the root of the SharePoint Online instance (for example, <code>https://mycompany.sharepoint.com</code>). For ADFS, this is the ID value for the Relying Party Trust between SharePoint and ADFS (for example, <code>&quot;urn:SHAREPOINT:adfs&quot;</code>).</li>
+  <li><strong>everyone-group</strong> - When specified, this group name is used in the ACLs when access should be given to everyone. This field is required when crawling user profiles is enabled. <strong>Note</strong> - Security is not yet respected by the Retrieve and Rank service.</li>
+  <li><strong>user-profile-master-url</strong> - The base URL that the connector uses to build links to user profiles. This should be configured to point to the display form for user profiles. If the token <code>%FIRST_SEED%</code> is encountered, it is replaced with the first seed URL. Required when crawling user profiles is enabled.</li>
+  <li><strong>urls</strong> - Newline-separated list of HTTP URLs of SharePoint web applications or site collections to crawl.</li>
+  <li><strong>ehcache-config</strong> - Unused option.</li>
+  <li><strong>method</strong> - The method (<code>GET</code> or <code>POST</code>) by which parameters will be passed.</li>
+  <li><strong>cache-types</strong> - Unused option.</li>
+  <li><strong>cache-size</strong> - Unused option.</li>
+  <li><strong>enable-acl</strong> - Enables crawling of SharePoint user profiles; values are <code>true</code> or <code>false</code>. Default value is <code>false</code>.</li>
+</ul><h3>Configuring the Box Connector</h3><p>The Box Connector allows you to crawl your Enterprise Box instance, and index the information it contains. Following are the basic configuration options that are required to use the Box connector. To set these values, open the file <code>config/connectors/box.conf</code> and modify the following values specific to your use cases:</p>
+<ul>
+  <li><strong>protocol</strong> - The name of the connector protocol used for the crawl. Use <code>box</code> for this connector.</li>
+  <li><strong>classname</strong> - Java class name for the connector. The value to use this connector must be <code>plugin:box.plugin@connector</code>.</li>
+  <li><strong>logging-config</strong> - Specifies the file used for configuring logging options; it must be formatted as a <code>log4j</code> XML string.</li>
+  <li><strong>box-crawl-seed-url</strong> - The base URL for Box. The value for this connector is <code>box://app.box.com/</code>. You can crawl different types of URLs, for example:</li>
+  <li><p><strong><em>To crawl an entire enterprise</em></strong>: <code>box://app.box.com/</code></p></li>
+  <li><strong><em>To crawl a specific Folder</em></strong>: <code>box://app.box.com/user/USER_ID/folder/FOLDER_ID/FolderName</code></li>
+  <li><strong><em>To crawl a specific User</em></strong>: <code>box://app.box.com/user/USER_ID/</code></li>
+  <li><strong>client-id</strong> - Enter the Client ID provided by Box when you created your Box application.</li>
+  <li><strong>client-secret</strong> - Enter the Client secret provided by Box when you created your Box application.</li>
+  <li><strong>path-to-private-key</strong> - This is the location, on your local file system, of the Private Key that is part of the private-public key pair generated for communication with Box.</li>
+  <li><strong>kid</strong> - Specify the Public Key ID. This is the other half of the private-public key pair generated for communication with Box.</li>
+  <li><strong>enterprise-id</strong> - The Enterprise in which your application was authorized. The Enterprise ID is listed in the main page of the Box Administrator Console.</li>
+  <li><strong>enable-acl</strong> - Internal use only. Enables retrieving ACLs for crawled data.</li>
+  <li><strong>user-agent</strong> - A header sent to the server when crawling documents.</li>
+  <li><strong>method</strong> - The method (<code>GET</code> or <code>POST</code>) by which parameters will be passed.</li>
+  <li><strong>url-logging</strong> - The extent to which crawled URLs are logged. Possible values are:</li>
+  <li><p><strong><em>full-logging</em></strong> - Log all information about the URL.</p></li>
+  <li><strong><em>refined-logging</em></strong> - Only log the information necessary to browse the crawler log and for the connector to function correctly; this is the default value.</li>
+  <li><strong><em>minimal-logging</em></strong> - Only log the minimum amount of information necessary for the connector to function correctly.</li>
+</ul><p>Setting this option to minimal-logging will reduce the size of the logs and gain a slight performance increase due to the smaller I/O associated with minimizing the amount of data that is being logged.<br/>* <strong>ssl-version</strong> - Specifies a verion of SSL to use for HTTPS connections. By default the strongest protocol available is used.</p><p>The Box Connector does have some limitations:</p>
+<ul>
+  <li>Comments or Tasks on files are not retrieved.</li>
+  <li>Notes content body is retrieved as JSON. Additional conversion of Note data may be needed.</li>
+  <li>Individual documents cannot be retrieved via TestIt. Only seed URLs, Folder URLs, and User URLs can be retrieved via TestIt.</li>
+</ul><h2>SEE ALSO</h2><p>crawler(1)</p><p>vcrypt(1)</p><p>crawler.conf(5)</p><p>crawler-seed.conf(5)</p><p>orchestration_service.conf(5)</p>

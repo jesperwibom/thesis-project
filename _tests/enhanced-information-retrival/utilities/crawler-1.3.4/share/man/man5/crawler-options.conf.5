@@ -1,0 +1,461 @@
+.\" generated with Ronn/v0.7.3
+.\" http://github.com/rtomayko/ronn/tree/0.7.3
+.
+.TH "CRAWLER\-OPTIONS" "5" "March 2017" "IBM " "IBM Data Crawler Manual"
+The data crawler collects the raw data that is eventually used to form search results for the IBM Watson Retrieve and Rank service\.
+.
+.P
+The data crawler currently provides connectors to support data collection from the following repositories:
+.
+.IP "\(bu" 4
+Filesystem
+.
+.IP "\(bu" 4
+Databases, via JDBC
+.
+.IP "\(bu" 4
+CMIS (Content Management Interoperability Services)
+.
+.IP "\(bu" 4
+SMB (Server message Block, CIFS (Common Internet Filesystem), or Samba fileshares
+.
+.IP "\(bu" 4
+SharePoint and SharePoint Online
+.
+.IP "\(bu" 4
+Box
+.
+.IP "" 0
+.
+.P
+A connector configuration template is also provided, which allows you to customize a connector\.
+.
+.SH "Getting started:"
+When crawling data repositories, the crawler begins at a user\-specified starting seed URL, and begins downloading pages of information\. The crawler also locates links in the downloaded pages, and schedules the newly\-discovered pages for further crawling\.
+.
+.P
+Configuration information is used to determine which pages need to be crawled, and how to crawl them\. This file explains the options that you can configure for each connector\.
+.
+.P
+\fBNote\fR: Each connector also has a corresponding seed configuration file; seed configuration options are described separately\.
+.
+.SS "Configuring the Filesystem Connector"
+The Filesystem Connector allows you to crawl files local to the data crawler installation\. Following are the basic configuration options that are required to use the Filesystem connector\. To set these values, open the file \fBconfig/connectors/filesystem\.conf\fR and modify the following values specific to your use cases:
+.
+.IP "\(bu" 4
+\fBprotocol\fR \- The name of the connector protocol used for the crawl\. Use \fBsdk\-fs\fR for this connector\.
+.
+.IP "\(bu" 4
+\fBcollection\fR \- This attribute is used to unpack temporary files\.
+.
+.IP "\(bu" 4
+\fBlogging\-config\fR \- Specifies the file used for configuring logging options; it must be formatted as a \fBlog4j\fR XML string\.
+.
+.IP "\(bu" 4
+\fBclassname\fR \- Java class name for the connector\. The value to use this connector must be \fBplugin:filesystem\.plugin@filesystem\fR\.
+.
+.IP "" 0
+.
+.SS "Configuring the Database Connector"
+The database connector allows you to crawl a database by executing a custom SQL command and creating one document per row (record) and one content element per column (field)\. You can specify a column to be used as a unique key, as well as a column containing a timestamp representing the last\-modification date of each record\. The connector retrieves all records from the specified database, and can also be restricted to specific tables, joins, and so on in the SQL statement\.
+.
+.P
+The Database connector allows you to crawl the following databases:
+.
+.IP "\(bu" 4
+IBM DB2
+.
+.IP "\(bu" 4
+MySQL
+.
+.IP "\(bu" 4
+Oracle
+.
+.IP "\(bu" 4
+PostgreSQL
+.
+.IP "\(bu" 4
+Microsoft SQL Server
+.
+.IP "\(bu" 4
+Sybase
+.
+.IP "\(bu" 4
+Other SQL\-compliant databases via a JDBC 3\.0\-compliant driver
+.
+.IP "" 0
+.
+.P
+The connector retrieves all records from the specified database and table\.
+.
+.P
+\fBJDBC Drivers\fR The Database connector ships with Oracle JDBC (Java Database Connectivity) driver version 1\.5\. All third\-party JDBC drivers shipped with data crawler are located in the \fB/lib/java/database\fR directory of your data crawler installation, where you can add, remove, and modify them as necessary\. You can also use the \fBextra_jars_dir\fR setting in the \fBcrawler\.conf\fR file to specify another location\.
+.
+.P
+\fB\fIDB2 JDBC Drivers\fR\fR Data crawler does not ship with the JDBC drivers for DB2 due to licensing issues\. However, all DB2 installations in which you have installed JDBC support include the JAR files that the data crawler requires, in order to be able to crawl a DB2 installation\. To crawl a DB2 instance, you must copy these files into the appropriate directory in your data crawler installation so that the Database connector can use them\.
+.
+.P
+To enable the data crawler to crawl a DB2 installation, locate the \fBdb2jcc\.jar\fR and license (typically, \fBdb2jcc_license_cu\.jar\fR) JAR files in your DB2 installation, and copy those files to the \fBlib/java\fR subdirectory of your data crawler installation directory, or you can use the \fBextra_jars_dir\fR setting in the \fBcrawler\.conf\fR file to specify another location\.
+.
+.P
+\fB\fIMySQL JDBC Drivers\fR\fR The data crawler does not ship with the JDBC drivers for MySQL because of possible license issues if they were delivered as part of the product\. However, downloading the JAR file that contains the MySQL JDBC drivers and integrating that JAR file into your data crawler installation is quite easy to do:
+.
+.IP "1." 4
+Use a web browser to visit the MySQL download site, and locate the source and binary download link for the archive format that you want to use (typically zip for Microsoft Windows systems or a gzipped tarball for Linux systems)\. Click that link to initiate the download process\. Registration may be required\.
+.
+.IP "2." 4
+Use the appropriate \fBunzip archive\-file\-name\fR or \fBtar zxf archive\-file\-name\fR command to extract the contents of that archive, based on the type and name of the archive file that you download\.
+.
+.IP "3." 4
+Change to the directory that was extracted from the archive file, and copy the JAR file from this directory to the \fBlib/java\fR subdirectory of your data crawler installation directory, or you can use the \fBextra_jars_dir\fR setting in the \fBcrawler\.conf\fR file to specify another location\.
+.
+.IP "" 0
+.
+.P
+Following are the basic configuration options that are required to use the Database connector\. To set these values, open the file \fBconfig/connectors/database\.conf\fR and modify the following values specific to your use cases:
+.
+.IP "\(bu" 4
+\fBprotocol\fR \- The name of the connector protocol used for the crawl\. The value for this connector is based on the database system to be accessed\.
+.
+.IP "\(bu" 4
+\fBcollection\fR \- This attribute is used to unpack temporary files\.
+.
+.IP "\(bu" 4
+\fBclassname\fR \- Java class name for the connector\. The value to use this connector must be \fBplugin:database\.plugin@database\fR\.
+.
+.IP "\(bu" 4
+\fBlogging\-config\fR \- Specifies the file used for configuring logging options; it must be formatted as a \fBlog4j\fR XML string\.
+.
+.IP "" 0
+.
+.SS "Configuring the CMIS Connector"
+The CMIS (Content Management Interoperability Services) connector lets you crawl CMIS\-enabled CMS (Content Management System) repositories, such as Alfresco, Documentum or IBM Content Manager, and index the data that they contain\.
+.
+.P
+Following are the basic configuration options that are required to use the CMIS connector\. To set these values, open the file \fBconfig/connectors/cmis\.conf\fR and modify the following values specific to your use cases:
+.
+.IP "\(bu" 4
+\fBprotocol\fR \- The name of the connector protocol used for the crawl\. Use \fBcmis\fR for this connector\.
+.
+.IP "\(bu" 4
+\fBcollection\fR \- This attribute is used to unpack temporary files\.
+.
+.IP "\(bu" 4
+\fBdns\fR \- Unused option\.
+.
+.IP "\(bu" 4
+\fBclassname\fR \- Java class name for the connector\. The value to use this connector must be \fBplugin:cmis\-v1\.1\.plugin@connector\fR\.
+.
+.IP "\(bu" 4
+\fBlogging\-config\fR \- Specifies the file used for configuring logging options; it must be formatted as a \fBlog4j\fR XML string\.
+.
+.IP "\(bu" 4
+\fBendpoint\fR \- The service endpoint URL of a CMIS\-compliant repository\. For example, the URL structures for SharePoint are:
+.
+.IP "\(bu" 4
+For AtomPub binding:
+.
+.br
+http://\fIserver\fR:\fIport\fR/_vti_bin/cmis/rest?getRepositories
+.
+.IP "\(bu" 4
+For WebServices binding:
+.
+.br
+http://\fIserver\fR:\fIport\fR/_vti_bin/cmissoapwsdl\.aspx
+.
+.IP "" 0
+
+.
+.IP "\(bu" 4
+\fBusername\fR \- The user name of the CMIS repository user used to access the content\. This user must have access to all the target folders and documents to be crawled and indexed\.
+.
+.IP "\(bu" 4
+\fBpassword\fR \- The password of the CMIS repository used to access the content\. Password must NOT be encrypted; it should be given in plain text\.
+.
+.IP "\(bu" 4
+\fBrepositoryid\fR \- The ID of the CMIS repository used to access the content for that specific repository\.
+.
+.IP "\(bu" 4
+\fBbindingtype\fR \- Identifies what type of binding is to be used to connect to a CMIS repository\. Value is either \fBAtomPub\fR or \fBWebServices\fR\.
+.
+.IP "\(bu" 4
+\fBauthentication\fR \- Identifies what type of authentication mechanism to use while contacting a CMIS\-compatible repository: \fBBasic HTTP Authentication\fR, \fBNTLM\fR, or \fBWS\-Security(Username token)\fR\.
+.
+.IP "\(bu" 4
+\fBenable\-acl\fR \- Enables retrieving ACLs for crawled data\. If you are not concerned about security for the documents in this collection, disabling this option will increase performance by not requesting this information with the document and not retrieving and encoding this information\. Value is either \fBtrue\fR or \fBfalse\fR\.
+.
+.IP "\(bu" 4
+\fBuser\-agent\fR \- A header sent to the server when crawling documents\.
+.
+.IP "\(bu" 4
+\fBmethod\fR \- The method (\fBGET\fR or \fBPOST\fR) by which parameters will be passed\.
+.
+.IP "\(bu" 4
+\fBurl\-logging\fR \- The extent to which crawled URLs are logged\. Possible values are:
+.
+.IP "\(bu" 4
+\fB\fIfull\-logging\fR\fR \- Log all information about the URL\.
+.
+.IP "\(bu" 4
+\fB\fIrefined\-logging\fR\fR \- Only log the information necessary to browse the crawler log and for the connector to function correctly; this is the default value\.
+.
+.IP "\(bu" 4
+\fB\fIminimal\-logging\fR\fR \- Only log the minimum amount of information necessary for the connector to function correctly\.
+.
+.IP "" 0
+.
+.IP
+Setting this option to minimal\-logging will reduce the size of the logs and gain a slight performance increase due to the smaller I/O associated with minimizing the amount of data that is being logged\.
+.
+.IP "\(bu" 4
+\fBssl\-version\fR \- Specifies a verion of SSL to use for HTTPS connections\. By default the strongest protocol available is used\.
+.
+.IP "" 0
+.
+.SS "Configuring the SMB/CIFS/Samba Connector"
+The Samba connector allows you to crawl Server Message Block (SMB) and Common Internet Filesystem (CIFS) fileshares\. This type of fileshare is common on Windows networks, and is also provided through the open source project Samba \fIhttps://www\.samba\.org/\fR\.
+.
+.P
+Following are the basic configuration options that are required to use the Samba connector\. To set these values, open the file \fBconfig/connectors/samba\.conf\fR and modify the following values specific to your use cases:
+.
+.IP "\(bu" 4
+\fBprotocol\fR \- The name of the connector protocol used for the crawl\. The value to use this connector is \fBsmb\fR\.
+.
+.IP "\(bu" 4
+\fBcollection\fR \- This attribute is used to unpack temporary files\.
+.
+.IP "\(bu" 4
+\fBclassname\fR \- Java class name for the connector\. The value to use this connector must be \fBplugin:smb\.plugin@connector\fR\.
+.
+.IP "\(bu" 4
+\fBlogging\-config\fR \- Specifies the file used for configuring logging options; it must be formatted as a \fBlog4j\fR XML string\.
+.
+.IP "\(bu" 4
+\fBusername\fR \- The Samba username to authenticate with\. If provided, domain and password must also be provided\. If not provided, the guest account is used\.
+.
+.IP "\(bu" 4
+\fBpassword\fR \- The Samba password to authenticate with\. If the username is provided, this is required\. Password must be encrypted using the VCrypt library shipped with the data crawler\.
+.
+.IP "\(bu" 4
+\fBarchive\fR \- Enables the Samba connector to crawl and index files that are compressed within archive files\. Value is either \fBtrue\fR or \fBfalse\fR; default value is \fBfalse\fR\.
+.
+.IP "\(bu" 4
+\fBmax\-policies\-per\-handle\fR \- Specifies the maximum number of Local Security Authority (LSA) policies that can be opened for a single RPC handle\. These policies define the access permissions that are required to query or modify a particular system under various conditions\. The default value for this option is \fB255\fR\.
+.
+.IP "\(bu" 4
+\fBcrawl\-fs\-metadata\fR \- Turning on this option will cause the data crawler to add a VXML document containing the available filesystem metadata about the file (creation date, last modified date, file attributes, etc\.)
+.
+.IP "\(bu" 4
+\fBenable\-arc\-connector\fR \- Unused option\.
+.
+.IP "\(bu" 4
+\fBdisable\-indexes\fR \- Newline\-separated list of indexes to disable, which may result in a faster crawl, for example:
+.
+.IP "\(bu" 4
+disable\-url\-index
+.
+.IP "\(bu" 4
+disable\-error\-state\-index
+.
+.IP "\(bu" 4
+disable\-crawl\-time\-index
+.
+.IP "" 0
+
+.
+.IP "\(bu" 4
+\fBexact\-duplicates\-hash\-size\fR \- Sets the size of the hash table used for resolving exact duplicates\. Be very careful when modifying this number\. The value that you select should be prime, and larger sizes can provide faster lookups but will require more memory, while smaller sizes can slow down crawls but will substantially reduce memory usage\.
+.
+.IP "\(bu" 4
+\fBuser\-agent\fR \- Unused option\.
+.
+.IP "\(bu" 4
+\fBtimeout\fR \- Unused option\.
+.
+.IP "\(bu" 4
+\fBn\-concurrent\-requests\fR \- The number of requests that will be sent in parallel to a single IP address\. The default is \fB1\fR\.
+.
+.IP "\(bu" 4
+\fBenqueue\-persistence\fR \- Unused option\.
+.
+.IP "" 0
+.
+.SS "Configuring the SharePoint Connector"
+The SharePoint connector allows you to crawl SharePoint Server and SharePoint Online objects and index the information that they contain\. An object such as a document, user profile, site collection, blog, listitem, membership list, directory page, and more, can be indexed with its associated metadata\. For list items and documents, indexes can include attachments\.
+.
+.P
+\fBNote\fR: The SharePoint connector respects the \fBnoindex\fR attribute on all SharePoint objects, regardless of their specific type (blogs, documents, user profiles, and more)\. A single document is returned for each result\.
+.
+.P
+\fBImportant\fR: The SharePoint account that you use to crawl your SharePoint sites must at least have full read\-access privileges\.
+.
+.P
+Following are the basic configuration options that are required to use the SharePoint connector\. To set these values, open the file \fBconfig/connectors/sharepoint\.conf\fR and modify the following values specific to your use cases:
+.
+.IP "\(bu" 4
+\fBprotocol\fR \- The name of the connector protocol used for the crawl\. Use \fBio\-sp\fR for this connector\.
+.
+.IP "\(bu" 4
+\fBcollection\fR \- This attribute is used to unpack temporary files\.
+.
+.IP "\(bu" 4
+\fBclassname\fR \- Java class name for the connector\. The value to use this connector must be \fBplugin:io\-sharepoint\.plugin@connector\fR\.
+.
+.IP "\(bu" 4
+\fBlogging\-config\fR \- Specifies the file used for configuring logging options; it must be formatted as a \fBlog4j\fR XML string\.
+.
+.IP "\(bu" 4
+\fBseed\-url\-type\fR \- Identifies what type of SharePoint object the provided seed URLs point to: site collections or web applications (also known as virtual servers)\.
+.
+.IP "\(bu" 4
+\fB\fISite Collections\fR\fR \- If the Seed URL Type is set to \fBSite Collections\fR, then only the children of the site collection referenced by the URL are crawled\.
+.
+.IP "\(bu" 4
+\fB\fIWeb Applications\fR\fR \- If the Seed URL Type is set to \fBWeb Applications\fR, then all of the site collections (and their children) belonging to the web applications referenced by each URL are crawled\.
+.
+.IP "" 0
+
+.
+.IP "\(bu" 4
+\fBauth\-type\fR \- The authentication mechanism to use when contacting the SharePoint server: \fBBASIC\fR, \fBNTLM2\fR, \fBKERBEROS\fR, or \fBCBA\fR\. The default authentication type is \fBNTLM2\fR\.
+.
+.IP "\(bu" 4
+\fBspUser\fR \- User name of the SharePoint user used to access the content\. This user must have access to all the target sites and lists to be crawled and indexed, and must be able to retrieve and resolve the associated permissions\. It is better to enter it with the domain name, like: \fBMYDOMAIN\e\eAdministrator\fR\.
+.
+.IP "\(bu" 4
+\fBspPassword\fR \- Password of the SharePoint user used to access the content\. Password must be encrypted using the vcrypt program shipped with the Data Crawler\.
+.
+.IP "\(bu" 4
+\fBcba\-sts\fR \- The URL for the Security Token Service (STS) endpoint to attempt to authenticate the crawl user against\. For SharePoint on\-premise with ADFS, this should be your ADFS endpoint\. If the Authentication Type is set to \fBCBA\fR (Claims Based Authentication), then this field is required\.
+.
+.IP "\(bu" 4
+\fBcba\-realm\fR \- The relaying party trust identifier to use when requesting a security token from the STS\. This is sometimes known as the "AppliesTo" value, or the "Realm"\. For SharePoint Online, this should be the URL to the root of the SharePoint Online instance (for example, \fBhttps://mycompany\.sharepoint\.com\fR)\. For ADFS, this is the ID value for the Relying Party Trust between SharePoint and ADFS (for example, \fB"urn:SHAREPOINT:adfs"\fR)\.
+.
+.IP "\(bu" 4
+\fBeveryone\-group\fR \- When specified, this group name is used in the ACLs when access should be given to everyone\. This field is required when crawling user profiles is enabled\. \fBNote\fR \- Security is not yet respected by the Retrieve and Rank service\.
+.
+.IP "\(bu" 4
+\fBuser\-profile\-master\-url\fR \- The base URL that the connector uses to build links to user profiles\. This should be configured to point to the display form for user profiles\. If the token \fB%FIRST_SEED%\fR is encountered, it is replaced with the first seed URL\. Required when crawling user profiles is enabled\.
+.
+.IP "\(bu" 4
+\fBurls\fR \- Newline\-separated list of HTTP URLs of SharePoint web applications or site collections to crawl\.
+.
+.IP "\(bu" 4
+\fBehcache\-config\fR \- Unused option\.
+.
+.IP "\(bu" 4
+\fBmethod\fR \- The method (\fBGET\fR or \fBPOST\fR) by which parameters will be passed\.
+.
+.IP "\(bu" 4
+\fBcache\-types\fR \- Unused option\.
+.
+.IP "\(bu" 4
+\fBcache\-size\fR \- Unused option\.
+.
+.IP "\(bu" 4
+\fBenable\-acl\fR \- Enables crawling of SharePoint user profiles; values are \fBtrue\fR or \fBfalse\fR\. Default value is \fBfalse\fR\.
+.
+.IP "" 0
+.
+.SS "Configuring the Box Connector"
+The Box Connector allows you to crawl your Enterprise Box instance, and index the information it contains\. Following are the basic configuration options that are required to use the Box connector\. To set these values, open the file \fBconfig/connectors/box\.conf\fR and modify the following values specific to your use cases:
+.
+.IP "\(bu" 4
+\fBprotocol\fR \- The name of the connector protocol used for the crawl\. Use \fBbox\fR for this connector\.
+.
+.IP "\(bu" 4
+\fBclassname\fR \- Java class name for the connector\. The value to use this connector must be \fBplugin:box\.plugin@connector\fR\.
+.
+.IP "\(bu" 4
+\fBlogging\-config\fR \- Specifies the file used for configuring logging options; it must be formatted as a \fBlog4j\fR XML string\.
+.
+.IP "\(bu" 4
+\fBbox\-crawl\-seed\-url\fR \- The base URL for Box\. The value for this connector is \fBbox://app\.box\.com/\fR\. You can crawl different types of URLs, for example:
+.
+.IP "\(bu" 4
+\fB\fITo crawl an entire enterprise\fR\fR: \fBbox://app\.box\.com/\fR
+.
+.IP "\(bu" 4
+\fB\fITo crawl a specific Folder\fR\fR: \fBbox://app\.box\.com/user/USER_ID/folder/FOLDER_ID/FolderName\fR
+.
+.IP "\(bu" 4
+\fB\fITo crawl a specific User\fR\fR: \fBbox://app\.box\.com/user/USER_ID/\fR
+.
+.IP "" 0
+
+.
+.IP "\(bu" 4
+\fBclient\-id\fR \- Enter the Client ID provided by Box when you created your Box application\.
+.
+.IP "\(bu" 4
+\fBclient\-secret\fR \- Enter the Client secret provided by Box when you created your Box application\.
+.
+.IP "\(bu" 4
+\fBpath\-to\-private\-key\fR \- This is the location, on your local file system, of the Private Key that is part of the private\-public key pair generated for communication with Box\.
+.
+.IP "\(bu" 4
+\fBkid\fR \- Specify the Public Key ID\. This is the other half of the private\-public key pair generated for communication with Box\.
+.
+.IP "\(bu" 4
+\fBenterprise\-id\fR \- The Enterprise in which your application was authorized\. The Enterprise ID is listed in the main page of the Box Administrator Console\.
+.
+.IP "\(bu" 4
+\fBenable\-acl\fR \- Internal use only\. Enables retrieving ACLs for crawled data\.
+.
+.IP "\(bu" 4
+\fBuser\-agent\fR \- A header sent to the server when crawling documents\.
+.
+.IP "\(bu" 4
+\fBmethod\fR \- The method (\fBGET\fR or \fBPOST\fR) by which parameters will be passed\.
+.
+.IP "\(bu" 4
+\fBurl\-logging\fR \- The extent to which crawled URLs are logged\. Possible values are:
+.
+.IP "\(bu" 4
+\fB\fIfull\-logging\fR\fR \- Log all information about the URL\.
+.
+.IP "\(bu" 4
+\fB\fIrefined\-logging\fR\fR \- Only log the information necessary to browse the crawler log and for the connector to function correctly; this is the default value\.
+.
+.IP "\(bu" 4
+\fB\fIminimal\-logging\fR\fR \- Only log the minimum amount of information necessary for the connector to function correctly\.
+.
+.IP "" 0
+.
+.IP
+Setting this option to minimal\-logging will reduce the size of the logs and gain a slight performance increase due to the smaller I/O associated with minimizing the amount of data that is being logged\.
+.
+.IP "\(bu" 4
+\fBssl\-version\fR \- Specifies a verion of SSL to use for HTTPS connections\. By default the strongest protocol available is used\.
+.
+.IP "" 0
+.
+.P
+The Box Connector does have some limitations:
+.
+.IP "\(bu" 4
+Comments or Tasks on files are not retrieved\.
+.
+.IP "\(bu" 4
+Notes content body is retrieved as JSON\. Additional conversion of Note data may be needed\.
+.
+.IP "\(bu" 4
+Individual documents cannot be retrieved via TestIt\. Only seed URLs, Folder URLs, and User URLs can be retrieved via TestIt\.
+.
+.IP "" 0
+.
+.SH "SEE ALSO"
+crawler(1)
+.
+.P
+vcrypt(1)
+.
+.P
+crawler\.conf(5)
+.
+.P
+crawler\-seed\.conf(5)
+.
+.P
+orchestration_service\.conf(5)

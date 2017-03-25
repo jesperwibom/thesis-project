@@ -1,0 +1,193 @@
+.\" generated with Ronn/v0.7.3
+.\" http://github.com/rtomayko/ronn/tree/0.7.3
+.
+.TH "CRAWLER" "5" "March 2017" "IBM " "IBM Data Crawler Manual"
+\fBcrawler\fR requires a configuration file for its options\. Examples of configuration are provided in the \fBshare\fR directory within \fBcrawler\fR\'s installation directory\. Copy these examples and modify them\. \fIDo not modify the examples in place\.\fR
+.
+.P
+The file \fBcrawler\.conf\fR contains information that tells the crawler which files to use for its crawl (input adapter), where to send the collection of crawled files once the crawl has been completed (output adapter), and other crawl management options\.
+.
+.P
+\fBNote\fR: All file paths are relative to the \fBconfig\fR directory, except where noted\.
+.
+.P
+The options that may be set in this file are:
+.
+.SH "Input adapter"
+.
+.IP "\(bu" 4
+\fBclass\fR \- Internal use only; defines the Data Crawler input adapter class\. Default value is: \fBcom\.ibm\.watson\.crawler\.connectorframeworkinputadapter\.Crawl\fR\.
+.
+.IP "\(bu" 4
+\fBconfig\fR \- Internal use only; defines the Connector Framework configuration\. The default configuration key within this block to pass to the chosen input adapter is: \fBconnector_framework\fR\. \fBNote\fR \- The Connector framework is what allows you to talk to your data\. It could be internal data within the enterprise, or it could be external data on the web or in the cloud\. The connectors allow access to a number of different data sources, while connecting is actually controlled by the crawling process\.
+.
+.IP "\(bu" 4
+\fBIMPORTANT\fR \- Data retrieved by the Connector Framework Input Adapter is cached locally\. It is not stored encrypted\. By default, the data is cached to a temporary directory that should be cleared on reboot, and should be readable only by the user who executed the crawler command\. There is a chance that this directory could outlive the crawler if the connector framework was to go away before it could clean up after itself\. Carefully consider the location for your cached data \- you may put it on an encrypted filesystem, but be aware of the performance implications of doing so\. Only you can decide the appropriate balance between speed and security for your crawls\.
+.
+.IP "\(bu" 4
+\fBcrawl_config_file\fR \- The configuration file to use for the crawl\. Default value is: \fBconnectors/filesystem\.conf\fR\.
+.
+.IP "\(bu" 4
+\fBcrawl_seed_file\fR \- The crawl seed file to use for the crawl\. Default value is: \fBseeds/filesystem\-seed\.conf\fR\.
+.
+.IP "\(bu" 4
+\fBid_vcrypt_file\fR \- Keyfile used for data encryption by the crawler; the default key included with the crawler is \fBid_vcrypt\fR\. Use the vcrypt script in the \fBbin\fR folder if you need to generate a new id_vcrypt_file
+.
+.IP "\(bu" 4
+\fBcrawler_temp_dir\fR \- The Crawler temporary folder for connector logs\. Default value, \fBtmp\fR, is provided\. If it doesn\'t already exist, the \fBtmp\fR folder will be created in the current working directory\.
+.
+.IP "\(bu" 4
+\fBextra_jars_dir\fR \- Internal use only; adds extra JARs to the Connector Framework classpath\. This value must be \fBoakland\fR when using the SharePoint connector, and \fBdatabase\fR when using the database connector\. You can leave it empty (i\.e\., empty string "") when using other connectors\. \fBNote\fR: Relative to the connector framework \fBlib/java\fR directory\.
+.
+.IP "\(bu" 4
+\fBurls_to_filter\fR \- New\-line separated whitelist of URLs to crawl, in regular expression form\. The Data Crawler only crawls URLs which match one of the regular expressions provided\. The domain list contains the most common top\-level domains; add to it if necessary\. The file extension\-type list contains the file extensions that the Orchestration Service supports, as of this release of the Data Crawler\. Ensure that your seed URL domain is allowed by the filter\. For example, if the seed URL looks like \fBhttp://testdomain\.test\.in\fR, add "\fBin\fR" to the domain filter\. Ensure that your seed URL will not be excluded by a filter, or the Crawler may hang\.
+.
+.IP "\(bu" 4
+\fBmax_text_size\fR \- The maximum size, in bytes, that a document can be before it is written to disk by the Connector Framework\. Adjusting this higher will decrease the amount of documents written to disk, but it will increase the memory requirement\.
+.
+.IP "\(bu" 4
+\fBextra_vm_params\fR \- Allows you to add extra Java parameters to the command used to launch the Connector Framework\.
+.
+.IP "\(bu" 4
+\fBbootstrap_logging\fR \- Writes connector framework startup log; useful for advanced debugging only\. Values are \fBtrue\fR or \fBfalse\fR\. Log file will be written to \fBcrawler_temp_dir\fR\.
+.
+.IP "" 0
+.
+.SH "Storage adapter"
+Allows for storage of the internal state of the crawler to a database\. This setting is necessary for the crawl \fBrestart\fR and \fBresume\fR options to work correctly\.
+.
+.IP "" 4
+.
+.nf
+
+storage_adapter {
+ config = "storage_in_db"
+  storage_in_db {
+    include "storage/database_storage\.conf"
+  }
+}
+.
+.fi
+.
+.IP "" 0
+.
+.P
+The file referenced, \fBstorage/database_storage\.conf\fR, by default uses a H2 database\. You can use any database with a JDBC driver, instead of the provided defaults\. Refer to the documentation for your JDBC driver to find specific information about some of these settings\. The default options can be changed directly by opening the \fBconfig/storage/database_storage\.conf\fR file, and modifying the following values specific to your use case:
+.
+.IP "\(bu" 4
+\fBclass\fR \- This class points to the database adapter class to use\. Default value is \fBcom\.ibm\.watson\.crawler\.storageadapters\.DatabasePersistAdapter\fR
+.
+.IP "\(bu" 4
+\fBdriver\fR \- The class for the JDBC driver\. Default value is \fBorg\.h2\.Driver\fR to use H2
+.
+.IP "\(bu" 4
+\fBurl\fR \- Refer to the JDBC options for your driver\. This is the URL prefix for the JDBC connection string\. Default is \fBjdbc:h2:file:\fR
+.
+.IP "\(bu" 4
+\fBdatabase_location\fR \- The location where you want your database\. This only applies to file\-based databases like sqlite and H2\. Default value is \fB\./storage/database\fR
+.
+.IP "\(bu" 4
+\fBdatabase_name\fR \- Name of the database\. Default value is \fBActivityDB\fR
+.
+.IP "\(bu" 4
+\fBtable_name\fR \- Name of table to use\. Default value is \fBLedger\fR
+.
+.IP "\(bu" 4
+\fBusername\fR \- Username to connect to database
+.
+.IP "\(bu" 4
+\fBpassword\fR \- Password to connect to database
+.
+.IP "" 0
+.
+.P
+The default configuration is sufficient for most activity\.
+.
+.SH "Output adapter"
+There are a couple of \fIoutput adapters\fR from which to choose\. Set the output adapter by setting \fBoutput_adapter\.class\fR in \fBcrawler\.conf\fR\. Options are:
+.
+.IP "\(bu" 4
+\fBclass\fR \- Defines the Data Crawler output adapter class\. Default value is \fBcom\.ibm\.watson\.crawler\.discoveryserviceoutputadapter\.DiscoveryServiceOutputAdapter\fR
+.
+.IP "\(bu" 4
+\fBconfig\fR \- Defines which configuration key to pass to the output adapter\. The string must correspond to a key within this configuration object\. In the following code example: \fBjavascript orchestration_service { include "orchestration_service\.conf" }, test { output_directory = "/tmp/crawler\-test\-output" } }\fR the configuration key is \fBorchestration_service\fR\. The default value is \fBdiscovery_service\fR
+.
+.IP "" 0
+.
+.P
+You must select an output adapter by specifying its \fBclass\fR parameter and \fBconfig\fR key\.
+.
+.TP
+\fBOrchestration Service output adapter\fR: Uploads crawled documents to Watson Developer Cloud\'s Orchestration Service\. Select this adapter by setting the \fBclass\fR parameter and \fBconfig\fR key as follows
+\fBjavascript class = "com\.ibm\.watson\.crawler\.orchestrationserviceoutputadapter\.oneatatime\.OrchestrationServiceOutputAdapter" config = "orchestration_service" orchestration_service { include "orchestration/orchestration_service\.conf" }\fR
+.
+.TP
+\fBDiscovery Service output adapter\fR: Uploads crawled documents to Watson Developer Cloud\'s Discovery Service\. Select this adapter by setting the \fBclass\fR parameter and \fBconfig\fR key as follows
+\fBjavascript class = "com\.ibm\.watson\.crawler\.discoveryserviceoutputadapter\.DiscoveryServiceOutputAdapter" config = "discovery_service" discovery_service { include "discovery/discovery_service\.conf" }\fR
+.
+.TP
+\fBWatson Test output adapter\fR: Writes a representation of the crawled files to disk in a specified location\. Select this adapter by setting the \fBclass\fR parameter and \fBconfig\fR key as follows:
+
+.
+.P
+\fBNote\fR \- An additional parameter, \fBoutput_directory\fR, selects the directory to which the representation of the crawled data should be written\. \fBjavascript class = "com\.ibm\.watson\.crawler\.testoutputadapter\.TestOutputAdapter" config = "test" output_directory = "/tmp/crawler\-test\-output"\fR * \fBretry\fR \- Specifies the options for retry in case of failed attempts to push to the output adapter\. * max_attempts \- Maximum number of retry attempts\. Default value is \fB10\fR * delay \- Minimum amount of delay between attempts, in seconds\. Default value is \fB2\fR * exponent_base \- Factor that determines the growth of the delay time over each failed attempt\. Default value is \fB2\fR
+.
+.P
+The formula is: \fBd(nth_retry) = delay * (exponent_base ^ nth_retry)\fR
+.
+.P
+For example, the settings with a delay of 1 second and an exponent base of 2, will cause the second retry \- the third attempt \- to delay 2 seconds instead of 1, and the next to delay 4 seconds\. \fBd(0) = 1 * (2 ^ 0) = 1 second d(1) = 1 * (2 ^ 1) = 2 seconds d(2) = 1 * (2 ^ 2) = 4 seconds\fR So, with the default settings, a submission will be attempted up to 10 times, waiting up to approximately 1,022 seconds (a little over 17 minutes)\. This time is approximate because there is additional time added in order to avoid having multiple resubmissions execute simultaneously\. This "fuzzed" time is up to 10%, so the last retry in the previous example could delay up to 4\.4 seconds\. The wait time does not include the time spent connecting to the service, uploading data, or waiting for a response\.
+.
+.P
+\fIWarning:\fR decreasing the wait time by lowering any of these defaults may result in documents not being successfully uploaded via the configured output adapter\. Evidence of this when using Watson Developer Cloud services will be RetryFailure messages in the log citing "429 Too Many Requests" rate limiting\.
+.
+.SH "Debugging options"
+.
+.IP "\(bu" 4
+\fBfull_node_debugging\fR \- Activates debugging mode; possible values are \fBtrue\fR or \fBfalse\fR\. \fBWarning\fR: This will put the full data of every document crawled into the logs\.
+.
+.IP "\(bu" 4
+\fBheartbeat_wait_time\fR \- Time interval, in milliseconds, between reporting document ingestion statistics (debugging mode only)\. Default value is 1000 milliseconds\.
+.
+.IP "" 0
+.
+.SH "Logging options"
+.
+.IP "\(bu" 4
+\fBconfiguration_file\fR \- The configuration file to use for logging\. In the sample \fBcrawler\.conf\fR file, this option is defined in \fBlogging\.log4j\fR and its default value is \fBlog4j_custom\.properties\fR\. This option must be similarly defined whether using a \fB\.properties\fR or \fB\.conf\fR file\.
+.
+.IP "" 0
+.
+.SH "Additional crawl management options"
+.
+.IP "\(bu" 4
+\fBshutdown_timeout\fR \- Specifies the timeout value, in minutes, before shutting down the application\. Default value is \fB10\fR\.
+.
+.IP "\(bu" 4
+\fBoutput_limit\fR \- The highest number of indexable items that the Crawler will try to send simultaneously to the output adapter\. This can be further limited by the number of cores available to do the work\. It says that at any given point there will be no more than "x" indexable items sent to the output adapter waiting to return\. Default value is \fB10\fR\.
+.
+.IP "\(bu" 4
+\fBinput_limit\fR \- Limits the number of URLs that can be requested from the connector at one time\. Default value is \fB3\fR\.
+.
+.IP "\(bu" 4
+\fBoutput_timeout\fR \- The amount of time, in seconds, before the Data Crawler gives up on a request to the output adapter, and then removes the item from the output adapter queue, to allow more processing\. Default value is \fB1200\fR\. \fBNote\fR \- Consideration should be given to the constraints imposed by the output adapter, as those constraints may relate to the limits defined here\. The \fBoutput_limit\fR defined above only relates to how many indexable objects can be sent to the output adapter at once\. Once an indexable object is sent to the output adapter, it is "on the clock," as defined by the \fBoutput_timeout\fR variable\. It is possible that the output adapter itself has a throttle preventing it from being able to process as many inputs as it receives\. For instance, the orchestration output adapter may have a connection pool, configurable for HTTP connections to the service\. If it defaults to 8, for example, and if you set the \fBoutput_limit\fR to a number greater than 8, then you will have processes, on the clock, waiting for a turn to execute\. You may then experience timeouts\.
+.
+.IP "\(bu" 4
+\fBnum_threads\fR \- The number of parallel threads that can be run at one time\. This value can be either an integer, which specifies the number of parallel threads directly, or it can be a string, with the format "xNUM", specifying the multiplication factor of the number of available processors, for example, "x1\.5"\. The default value is \fB"30"\fR\.
+.
+.IP "" 0
+.
+.SH "SEE ALSO"
+crawler(1)
+.
+.P
+vcrypt(1)
+.
+.P
+crawler\-options\.conf(5)
+.
+.P
+crawler\-seed\.conf(5)
+.
+.P
+orchestration_service\.conf(5)

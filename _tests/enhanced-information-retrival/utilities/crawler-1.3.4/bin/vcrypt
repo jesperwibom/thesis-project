@@ -1,0 +1,38 @@
+#!/bin/bash
+# Runner for vcrypt-java
+# Run the script without options to view usage.
+
+SOURCE="${BASH_SOURCE[0]}"
+while [ -h "$SOURCE" ]; do # resolve $SOURCE until the file is no longer a symlink
+     DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
+     SOURCE="$(readlink "$SOURCE")"
+     [[ $SOURCE != /* ]] && SOURCE="$DIR/$SOURCE" # if $SOURCE was a relative symlink, we need to resolve it relative to the path where the symlink file was located
+done
+
+SCRIPT_DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
+LIB_DIR="$SCRIPT_DIR/../lib"
+VCRYPT_JAR="`ls $LIB_DIR/vcrypt-java*.jar | head -n 1`"
+
+# Determine the Java command to use to start the JVM.
+if [ -n "$JAVA_HOME" ] ; then
+    if [ -x "$JAVA_HOME/jre/sh/java" ] ; then
+        # IBM's JDK on AIX uses strange locations for the executables
+        JAVACMD="$JAVA_HOME/jre/sh/java"
+    else
+        JAVACMD="$JAVA_HOME/bin/java"
+    fi
+    if [ ! -x "$JAVACMD" ] ; then
+        die "ERROR: JAVA_HOME is set to an invalid directory: $JAVA_HOME
+
+Please set the JAVA_HOME variable in your environment to match the
+location of your Java installation."
+    fi
+else
+    JAVACMD="java"
+    which java >/dev/null 2>&1 || die "ERROR: JAVA_HOME is not set and no 'java' command could be found in your PATH.
+
+Please set the JAVA_HOME variable in your environment to match the
+location of your Java installation."
+fi
+
+exec "$JAVACMD" -Dvcrypt.invoked_as="$0" ${VCRYPT_OPTS} -jar "$VCRYPT_JAR" $@
