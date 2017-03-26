@@ -66,7 +66,7 @@ module.exports.crawl = function(url, callback) {
 		console.log(colors.black.bgGreen.bold("Fetch complete:")+" "+colors.yellow.bold("%s")+" "+colors.yellow.dim("(%d bytes)"), queueItem.url, responseBuffer.length);
 		console.log(colors.dim("content-type: ")+colors.bold.dim("\t%s"), response.headers['content-type']);
 
-		callback(responseBuffer);
+		callback(responseBuffer,queueItem.url);
 	});
 
 	crawler.start();

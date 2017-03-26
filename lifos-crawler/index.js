@@ -25,8 +25,8 @@ fs.readFile(_TAGSPATH, 'utf8', (err, data) => {
 		tagSaver.setCache(data);
 	}
 
-	crawler.crawl(_URL, function(content) {
-		scraper.extractData(content);
+	crawler.crawl(_URL, function(content,fetchUrl) {
+		scraper.extractData(content,fetchUrl);
 	});
 });
 

@@ -1,11 +1,8 @@
 'use strict';
 
-const cheerio	= require('cheerio');
 const colors	= require('colors/safe');
-const fs 		= require('fs');
-const translate = require('google-translate-api');
-
-//const translator = require('../translator/index');
+const translate= require('google-translate-api');
+const database = require("../dbUtil/index.js");
 
 var sessionData = {
 	testedTags: 0,
@@ -27,6 +24,8 @@ module.exports.parse = function(tags, src, lang) {
 
 	//var updated = false;
 	console.log("\n"+colors.bold(tagsCache.length)+" tags already in tagsCache\n");
+
+	//database.saveTags(tags);
 
 	for(var i = 0; i < tags.length; i++){
 
