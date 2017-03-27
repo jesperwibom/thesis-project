@@ -79,7 +79,6 @@ module.exports.saveTag = function(tag, trans, sumId, sumUrl){
 	trans = trans.replace(/\./g,"").replace(/\#/g,"").replace(/\$/g,"").replace(/\[/g,"").replace(/\]/g,"");
 
 	if(!cache.tagIndex[tag]){
-		console.log(colors.red.bold("ADDING TAG : ")+tag+" : "+trans);
 		var tagDataRef = firebase.database().ref('tag_data').push();
 		tagDataRef.set({
 			sv:{
@@ -118,17 +117,22 @@ module.exports.saveTag = function(tag, trans, sumId, sumUrl){
 				firebase.database().ref('tag_index/'+trans+'/language_en').update({en: true});
 			});
 		}
-	} else {
-		console.log(colors.green.bold("TAG ALREADY EXISTS : ")+tag);
+	}
+};
+
+module.exports.saveTagSumReference = function(tag,sumId,sumUrl){
+	firebase.database().ref('tag_index/'+tag).once('value',function(data){
+		var key = data.child('tag_meta_ref').val();
+		var tagMetaRef = firebase.database().ref('tag_meta/'+key);
 		var sumReferenceDataRef = tagMetaRef.child('sum_index_refs').push();
 		sumReferenceDataRef.update({
 			sum_index_ref: sumId,
 			sum_url: sumUrl
 		});
-	}
-};
+	})
+}
 
-module.exports.saveSum = function(sum, trans, tags){
+module.exports.saveSum = function(sum, trans, tags, docs){
 	if(!cache.sumIndex[sum.id]){
 		console.log(colors.yellow.bold("ADDING SUM : ")+sum.id);
 		var sumDataRef = firebase.database().ref('sum_data').push();
@@ -145,6 +149,7 @@ module.exports.saveSum = function(sum, trans, tags){
 			}
 		});
 
+
 		var sumMetaRef = firebase.database().ref('sum_meta').push();
 		sumMetaRef.update({
 			url: sum.url,
@@ -153,18 +158,14 @@ module.exports.saveSum = function(sum, trans, tags){
 			source: sum.source
 		});
 
-		/*
 		//for each document a new reference needs to be pushed
 		for(var i = 0; i < docs.length; i++){
 			var docReferenceDataRef = sumMetaRef.child('doc_index_refs').push();
 			docReferenceDataRef.update({
-				doc_index_ref: "EMPTY",
-				doc_url: "EMPTY",
-				external: "true | false",
-				type: "MAIN | AUX"
+				doc_index_ref: docs[i].id,
+				doc_url: docs[i].url
 			});
 		}
-		*/
 
 		//for each tag a new reference needs to be pushed
 		for(var i = 0; i < tags.length; i++){

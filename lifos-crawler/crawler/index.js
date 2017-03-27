@@ -2,15 +2,15 @@
 
 const Crawler 	= require('simplecrawler');
 const colors	= require('colors/safe');
-const database = require("../dbUtil/index");
+const database = require("../database/index");
 
 
 module.exports.crawl = function(url, callback) {
 	let crawler = new Crawler(url);
 
-	crawler.interval				= 500;
-	crawler.maxConcurrency		= 1;
-	crawler.maxDepth				= 3;
+	crawler.interval				= 25;
+	crawler.maxConcurrency		= 20;
+	crawler.maxDepth				= 4;
 	crawler.respectRobotsTxt	= false;
 	crawler.filterByDomain 		= false; //see the fetch conditions
 	crawler.domainWhitelist		= ["http://lifos.migrationsverket.se/","http://www.migrationsverket.se/","http://migrationsverket.se/"];

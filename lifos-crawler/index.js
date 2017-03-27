@@ -6,7 +6,7 @@ const colors	= require("colors/safe");
 const radio     = require("radio");
 const crawler 	= require('./crawler/index');
 const scraper 	= require('./scraper/index');
-const database  = require("./dbUtil/index");
+const database  = require("./database/index");
 
 var firstPage = "http://lifos.migrationsverket.se/sokning/detaljerad-sokning.html?fullTextSearchType=allWords&baseQuery=&withoutWords=&allWordsInTitle=&countries=&subjectWords=&sources=&dateFieldName=disabled&searchSessionId=75949961394a4db8a3fb5ad8f8ad2bcc&sort=creationDate&page="+"1";
 

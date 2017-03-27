@@ -15,7 +15,7 @@ module.exports.translateTag = function(tag,sumId,sumUrl,callback){
 	});
 }
 
-module.exports.translateSum = function(sum,tags,callback){
+module.exports.translateSum = function(sum,tags,docs,callback){
 	var gate = {
 		title: false,
 		abstract: false,
@@ -27,9 +27,14 @@ module.exports.translateSum = function(sum,tags,callback){
 		summary: "NOT_TRANSLATED"
 	};
 
-	var length = 1200;
-	var trimmedSummary = sum.summary.length > length ?
-                    		sum.summary.substring(0, length) + "... [MACHINE_TRANSLATION_LIMIT_REACHED]":
+	var lengthAbstract = 1200;
+	var trimmedAbstract = sum.abstract.length > lengthAbstract ?
+                    		sum.abstract.substring(0, lengthAbstract) + "... [MACHINE_TRANSLATION_LIMIT_REACHED]":
+                    		sum.abstract;
+
+	var lengthSummary = 1200;
+	var trimmedSummary = sum.summary.length > lengthSummary ?
+                    		sum.summary.substring(0, lengthSummary) + "... [MACHINE_TRANSLATION_LIMIT_REACHED]":
                     		sum.summary;
 
 	translate(sum.title, {to: 'en'})
@@ -37,28 +42,28 @@ module.exports.translateSum = function(sum,tags,callback){
 			trans.title = res.text;
 			gate.title = true;
 			if(gate.title && gate.abstract && gate.summary){
-				callback(sum,trans,tags);
+				callback(sum,trans,tags,docs);
 			}
 			return true;
 		}).catch(err => {
-			console.log(sum.title+" COULD NOT FIND TRANSLATION ", err);
+			console.log(sum.title+" COULD NOT FIND TRANSLATION ", err.code);
 			if(gate.title && gate.abstract && gate.summary){
-				callback(sum,trans,tags);
+				callback(sum,trans,tags,docs);
 			}
 	});
 
-	translate(sum.abstract, {to: 'en'})
+	translate(trimmedAbstract, {to: 'en'})
 		.then(res => {
 			trans.abstract = res.text;
 			gate.abstract = true;
 			if(gate.title && gate.abstract && gate.summary){
-				callback(sum,trans,tags);
+				callback(sum,trans,tags,docs);
 			}
 			return true;
 		}).catch(err => {
-			console.log(sum.abstract+" COULD NOT FIND TRANSLATION ", err);
+			console.log(trimmedAbstract+" COULD NOT FIND TRANSLATION ", err.code);
 			if(gate.title && gate.abstract && gate.summary){
-				callback(sum,trans,tags);
+				callback(sum,trans,tags,docs);
 			}
 	});
 
@@ -67,13 +72,13 @@ module.exports.translateSum = function(sum,tags,callback){
 			trans.summary = res.text;
 			gate.summary = true;
 			if(gate.title && gate.abstract && gate.summary){
-				callback(sum,trans,tags);
+				callback(sum,trans,tags,docs);
 			}
 			return true;
 		}).catch(err => {
-			console.log(sum.summary+" COULD NOT FIND TRANSLATION ", err);
+			console.log(trimmedSummary+" COULD NOT FIND TRANSLATION ", err.code);
 			if(gate.title && gate.abstract && gate.summary){
-				callback(sum,trans,tags);
+				callback(sum,trans,tags,docs);
 			}
 	});
 }
