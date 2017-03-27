@@ -8,6 +8,7 @@ const session  = require("../session/index");
 
 module.exports.crawl = function(url, callback) {
 	let crawler = new Crawler(url);
+	let firstPage = parseInt(url.split('=').pop());
 
 	crawler.interval				= 20;
 	crawler.maxConcurrency		= 20;
@@ -55,6 +56,20 @@ module.exports.crawl = function(url, callback) {
 			session.addSumsSkipped(1);
 		}
 		callback(null, !alreadyParsedUrls[id]);
+	});
+	var conditionIgnorePages = crawler.addFetchCondition(function(queueItem, referrerQueueItem, callback){
+		if(!queueItem.path.match(/(page)\=[0-9]+$/i)){
+			callback(null, true);
+		} else {
+			//console.log('PAGE url');
+			var pageNr = queueItem.path.split("=").pop();
+			if(pageNr < (firstPage-10) || pageNr > (firstPage+10)){
+				//console.log('PAGE url TO HIGH/LOW');
+				callback(null, false);
+			} else {
+				callback(null, true);
+			}
+		}
 	});
 	var conditionIgnoreEndings = crawler.addFetchCondition(function(queueItem, referrerQueueItem, callback) {
 		callback(null, !queueItem.path.match(/\.(css|js|jpg|jpeg|gif|png|ico|portlet|dtd|pdf)$/i));
