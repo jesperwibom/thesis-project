@@ -36,22 +36,25 @@ module.exports.updateCache = function(type){
 		case "tagIndex":
 			firebase.database().ref('tag_index').once('value',function(data){
 				cache.tagIndex = data.val() || {};
+				var noTagsInDB = Object.keys(cache.tagIndex).length;
 				// console.log("cache.tagIndex VALUE UPDATED",data.val());
-				radio('cache_update').broadcast(type);
+				radio('cache_update').broadcast(type,noTagsInDB);
 			});
 			break;
 		case "sumIndex":
 			firebase.database().ref('sum_index').once('value',function(data){
 				cache.sumIndex = data.val() || {};
+				var noSumsInDB = Object.keys(cache.sumIndex).length;
 				// console.log("cache.sumIndex VALUE UPDATED",data.val());
-				radio('cache_update').broadcast(type);
+				radio('cache_update').broadcast(type,noSumsInDB);
 			});
 			break;
 		case "docIndex":
 			firebase.database().ref('doc_index').once('value',function(data){
 				cache.docIndex = data.val() || {};
+				var noDocsInDB = Object.keys(cache.docIndex).length;
 				// console.log("cache.docIndex VALUE UPDATED",data.val());
-				radio('cache_update').broadcast(type);
+				radio('cache_update').broadcast(type,noDocsInDB);
 			});
 			break;
 		default:
@@ -134,7 +137,7 @@ module.exports.saveTagSumReference = function(tag,sumId,sumUrl){
 
 module.exports.saveSum = function(sum, trans, tags, docs){
 	if(!cache.sumIndex[sum.id]){
-		console.log(colors.yellow.bold("ADDING SUM : ")+sum.id);
+		console.log(colors.yellow.dim("ADDING SUM : ")+sum.id);
 		var sumDataRef = firebase.database().ref('sum_data').push();
 		sumDataRef.set({
 			sv:{
@@ -148,8 +151,6 @@ module.exports.saveSum = function(sum, trans, tags, docs){
 				summary: trans.summary
 			}
 		});
-
-
 		var sumMetaRef = firebase.database().ref('sum_meta').push();
 		sumMetaRef.update({
 			url: sum.url,
@@ -157,7 +158,6 @@ module.exports.saveSum = function(sum, trans, tags, docs){
 			publish_date: sum.date,
 			source: sum.source
 		});
-
 		//for each document a new reference needs to be pushed
 		for(var i = 0; i < docs.length; i++){
 			var docReferenceDataRef = sumMetaRef.child('doc_index_refs').push();
@@ -166,7 +166,6 @@ module.exports.saveSum = function(sum, trans, tags, docs){
 				doc_url: docs[i].url
 			});
 		}
-
 		//for each tag a new reference needs to be pushed
 		for(var i = 0; i < tags.length; i++){
 			var tagReferenceDataRef = sumMetaRef.child('tag_index_refs').push();
@@ -174,15 +173,11 @@ module.exports.saveSum = function(sum, trans, tags, docs){
 				tag_index_ref: tags[i]
 			});
 		}
-
 		var sumIndexRef = firebase.database().ref('sum_index/'+sum.id).set({
 			added: firebase.database.ServerValue.TIMESTAMP,
 			sum_meta_ref: sumMetaRef.key,
 			sum_data_ref: sumDataRef.key
 		});
-
-	} else {
-		console.log(colors.blue.bold("SUM ALREADY EXISTS : ")+sum.id);
 	}
 };
 

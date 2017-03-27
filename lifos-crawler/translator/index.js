@@ -10,7 +10,7 @@ module.exports.translateTag = function(tag,sumId,sumUrl,callback){
 			callback(tag, trans, sumId, sumUrl);
 			return true;
 		}).catch(err => {
-			console.log(tag+" COULD NOT FIND TRANSLATION ");
+			console.log(colors.red.bold("COULD NOT FIND TRANSLATION :"),tag,err.code);
 			callback(tag, "NOT_TRANSLATED", sumId, sumUrl);
 	});
 }
@@ -27,14 +27,14 @@ module.exports.translateSum = function(sum,tags,docs,callback){
 		summary: "NOT_TRANSLATED"
 	};
 
-	var lengthAbstract = 1200;
+	var lengthAbstract = 600;
 	var trimmedAbstract = sum.abstract.length > lengthAbstract ?
-                    		sum.abstract.substring(0, lengthAbstract) + "... [MACHINE_TRANSLATION_LIMIT_REACHED]":
+                    		sum.abstract.substring(0, lengthAbstract) + "... MASKINLÄSNING BEGRÄNSAD":
                     		sum.abstract;
 
-	var lengthSummary = 1200;
+	var lengthSummary = 1000;
 	var trimmedSummary = sum.summary.length > lengthSummary ?
-                    		sum.summary.substring(0, lengthSummary) + "... [MACHINE_TRANSLATION_LIMIT_REACHED]":
+                    		sum.summary.substring(0, lengthSummary) + "... MASKINLÄSNING BEGRÄNSAD":
                     		sum.summary;
 
 	translate(sum.title, {to: 'en'})
@@ -46,7 +46,7 @@ module.exports.translateSum = function(sum,tags,docs,callback){
 			}
 			return true;
 		}).catch(err => {
-			console.log(sum.title+" COULD NOT FIND TRANSLATION ", err.code);
+			console.log(colors.red.bold("COULD NOT FIND TRANSLATION : title :"),sum.title,err.code);
 			if(gate.title && gate.abstract && gate.summary){
 				callback(sum,trans,tags,docs);
 			}
@@ -61,7 +61,7 @@ module.exports.translateSum = function(sum,tags,docs,callback){
 			}
 			return true;
 		}).catch(err => {
-			console.log(trimmedAbstract+" COULD NOT FIND TRANSLATION ", err.code);
+			console.log(colors.red.bold("COULD NOT FIND TRANSLATION : abstract :"),trimmedAbstract,err.code);
 			if(gate.title && gate.abstract && gate.summary){
 				callback(sum,trans,tags,docs);
 			}
@@ -76,7 +76,7 @@ module.exports.translateSum = function(sum,tags,docs,callback){
 			}
 			return true;
 		}).catch(err => {
-			console.log(trimmedSummary+" COULD NOT FIND TRANSLATION ", err.code);
+			console.log(colors.red.bold("COULD NOT FIND TRANSLATION : summary :"),trimmedSummary,err.code);
 			if(gate.title && gate.abstract && gate.summary){
 				callback(sum,trans,tags,docs);
 			}

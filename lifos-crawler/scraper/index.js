@@ -4,6 +4,7 @@ const cheerio = require('cheerio');
 const colors	= require('colors/safe');
 const translator = require('../translator/index');
 const database = require("../database/index");
+const session  = require("../session/index");
 
 module.exports.extractData = function(html,url) {
 
@@ -16,47 +17,48 @@ module.exports.extractData = function(html,url) {
 		sum = extractSumData($, '#documentViewerContainer');
 		docs = extractDocs($,'.documentViewerTextDistance');
 	} else {
-		console.log(colors.red.bold("not a document summary page\n"));
+		console.log(colors.red.dim("not a document summary page"));
 		return false;
 	}
 	if($('#metadataDisplayMain').length){
 		sum = Object.assign(sum, extractSumMeta($, '#metadataDisplayInformation'));
 		tags = extractTags($, '#metadataDisplayMain');
 	} else {
-		console.log(colors.red.bold("no meta data found\n"));
+		console.log(colors.red.bold("no meta data found"));
 		return false;
 	}
 	sum.url = url;
 
-	console.log(colors.blue.bold("document data"));
 	console.log(colors.bold("%s"), sum.title);
 	console.log(colors.dim("%s"), sum.abstract);
 
 	translator.translateSum(sum,tags,docs,function(sum, trans,tags,docs){
 		database.saveSum(sum,trans,tags,docs);
 	});
+	session.addSumsWritten(1);
 
 	for(var i = 0; i < tags.length; i++){
 		var tag = tags[i];
 		if(database.getCache("tagIndex")[tag]){
-			console.log(colors.green.bold("TAG ALREADY EXISTS : ")+tag);
+			//console.log(colors.green.bold("TAG ALREADY EXISTS : ")+tag);
+			session.addTagsSkipped(1);
 			database.saveTagSumReference(tag,sum.id,sum.url);
 			continue;
 		}
-		console.log(colors.red.bold("ADDING TAG : ")+tag);
+		console.log(colors.red.dim("ADDING TAG : ")+tag);
+		session.addTagsWritten(1);
 		translator.translateTag(tag,sum.id,sum.url,function(tag,trans,sumId,sumUrl){
 			database.saveTag(tag,trans,sumId,sumUrl);
 		});
 	}
 };
 
-
 function extractTags($, queryString){
 	var tempArr = [];
 	$(queryString).filter(function(){
 		let data = $(this);
 		tempArr = data.find('#metadataDisplaySubjectword').text().toLowerCase().split(", ");
-		console.log("tags found: "+data.find('#metadataDisplaySubjectword').text())
+		//console.log("tags found: "+data.find('#metadataDisplaySubjectword').text())
 	});
 	return tempArr;
 }
