@@ -2,13 +2,15 @@
 
 const Crawler 	= require('simplecrawler');
 const colors	= require('colors/safe');
+const database = require("../dbUtil/index");
+
 
 module.exports.crawl = function(url, callback) {
 	let crawler = new Crawler(url);
 
-	crawler.interval				= 1000;
+	crawler.interval				= 500;
 	crawler.maxConcurrency		= 1;
-	crawler.maxDepth				= 2;
+	crawler.maxDepth				= 3;
 	crawler.respectRobotsTxt	= false;
 	crawler.filterByDomain 		= false; //see the fetch conditions
 	crawler.domainWhitelist		= ["http://lifos.migrationsverket.se/","http://www.migrationsverket.se/","http://migrationsverket.se/"];
@@ -21,7 +23,10 @@ module.exports.crawl = function(url, callback) {
 		"lanksamling",
 		"easo-coi-portal",
 		"om-lifos",
-		"kontakta-lifos"
+		"kontakta-lifos",
+		"sokhjalp",
+		"amnesord",
+		"kallor"
 	];
 
 	function getIgnoreUrlsRegExp(urls){
@@ -37,13 +42,21 @@ module.exports.crawl = function(url, callback) {
 	};
 
 	var ignoreUrlsRegExp = getIgnoreUrlsRegExp(ignoreUrls);
+	var alreadyParsedUrls = database.getCache('sumIndex');
 
 	// CONDITIONS
 	var conditionIgnoreUrls = crawler.addFetchCondition(function(queueItem, referrerQueueItem, callback) {
 		callback(null, !queueItem.path.match(ignoreUrlsRegExp));
 	});
+	var conditionIgnoreSums = crawler.addFetchCondition(function(queueItem, referrerQueueItem, callback) {
+		var id = queueItem.path.split('=')[1];
+		callback(null, !alreadyParsedUrls[id]);
+	});
 	var conditionIgnoreEndings = crawler.addFetchCondition(function(queueItem, referrerQueueItem, callback) {
 		callback(null, !queueItem.path.match(/\.(css|js|jpg|jpeg|gif|png|ico|portlet|dtd)$/i));
+	});
+	var conditionIgnoreCategoryPage = crawler.addFetchCondition(function(queueItem, referrerQueueItem, callback) {
+		callback(null, !queueItem.path.match(/(category)\=[0-9]+$/i));
 	});
 	var conditionIgnoreRssPortlet = crawler.addFetchCondition(function(queueItem, referrerQueueItem, callback) {
 		callback(null, !queueItem.path.match(/\.(rss|portlet)/i)); //.rss OR .portlet (not neccesarily ending)

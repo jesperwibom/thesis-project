@@ -61,7 +61,7 @@ function extractSumData($, queryString){
 	$(queryString).filter(function(){
 		let data = $(this);
 		tempObj.title = data.find(".DocumentHeader").text();
-		tempObj.abstract = data.find("#documentViewerSummary").eq(0).text().trim();
+		tempObj.abstract = data.find("#documentViewerSummary").children().eq(1).text().trim();
 		tempObj.summary = data.find("#documentViewerSummary").text().trim();
 	});
 	return tempObj;

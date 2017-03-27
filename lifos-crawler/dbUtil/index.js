@@ -2,6 +2,7 @@
 
 const firebase = require("firebase");
 const colors	= require('colors/safe');
+const radio    = require("radio");
 
 var config = {
 	apiKey: "AIzaSyD93bqwNxuyflXc0AFAGhx6QdaFJQQ8yZQ",
@@ -30,6 +31,35 @@ firebase.database().ref('doc_index').on('child_added',function(data){
 	cache.docIndex[data.key] = data.val();
 });
 
+module.exports.updateCache = function(type){
+	switch (type) {
+		case "tagIndex":
+			firebase.database().ref('tag_index').once('value',function(data){
+				cache.tagIndex = data.val() || {};
+				// console.log("cache.tagIndex VALUE UPDATED",data.val());
+				radio('cache_update').broadcast(type);
+			});
+			break;
+		case "sumIndex":
+			firebase.database().ref('sum_index').once('value',function(data){
+				cache.sumIndex = data.val() || {};
+				// console.log("cache.sumIndex VALUE UPDATED",data.val());
+				radio('cache_update').broadcast(type);
+			});
+			break;
+		case "docIndex":
+			firebase.database().ref('doc_index').once('value',function(data){
+				cache.docIndex = data.val() || {};
+				// console.log("cache.docIndex VALUE UPDATED",data.val());
+				radio('cache_update').broadcast(type);
+			});
+			break;
+		default:
+			console.log(colors.red.bold("updateCache needs a type string ('tagIndex'|'sumIndex'|'docIndex')"));
+			break;
+	}
+}
+
 module.exports.getCache = function(type){
 	switch (type) {
 		case "tagIndex":
@@ -44,11 +74,12 @@ module.exports.getCache = function(type){
 };
 
 module.exports.saveTag = function(tag, trans, sumId, sumUrl){
-
+	tag = tag.replace(/\./g,"").replace(/\#/g,"").replace(/\$/g,"").replace(/\[/g,"").replace(/\]/g,"");
 	trans = trans || "NOT_TRANSLATED";
+	trans = trans.replace(/\./g,"").replace(/\#/g,"").replace(/\$/g,"").replace(/\[/g,"").replace(/\]/g,"");
 
 	if(!cache.tagIndex[tag]){
-		console.log(colors.red.bold("ADDING TAG : ")+tag);
+		console.log(colors.red.bold("ADDING TAG : ")+tag+" : "+trans);
 		var tagDataRef = firebase.database().ref('tag_data').push();
 		tagDataRef.set({
 			sv:{
@@ -98,7 +129,6 @@ module.exports.saveTag = function(tag, trans, sumId, sumUrl){
 };
 
 module.exports.saveSum = function(sum, trans, tags){
-
 	if(!cache.sumIndex[sum.id]){
 		console.log(colors.yellow.bold("ADDING SUM : ")+sum.id);
 		var sumDataRef = firebase.database().ref('sum_data').push();

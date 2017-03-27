@@ -4,13 +4,13 @@ const colors	= require('colors/safe');
 const translate= require('google-translate-api');
 
 module.exports.translateTag = function(tag,sumId,sumUrl,callback){
-	translate(tag, {to: 'en'})
+	translate(tag, {from: 'sv', to: 'en'})
 		.then(res => {
 			var trans = res.text.toLowerCase();
 			callback(tag, trans, sumId, sumUrl);
 			return true;
 		}).catch(err => {
-			console.log(tag+" COULD NOT FIND TRANSLATION ", err);
+			console.log(tag+" COULD NOT FIND TRANSLATION ");
 			callback(tag, "NOT_TRANSLATED", sumId, sumUrl);
 	});
 }
@@ -26,6 +26,11 @@ module.exports.translateSum = function(sum,tags,callback){
 		abstract: "NOT_TRANSLATED",
 		summary: "NOT_TRANSLATED"
 	};
+
+	var length = 1200;
+	var trimmedSummary = sum.summary.length > length ?
+                    		sum.summary.substring(0, length) + "... [MACHINE_TRANSLATION_LIMIT_REACHED]":
+                    		sum.summary;
 
 	translate(sum.title, {to: 'en'})
 		.then(res => {
@@ -57,7 +62,7 @@ module.exports.translateSum = function(sum,tags,callback){
 			}
 	});
 
-	translate(sum.summary, {to: 'en'})
+	translate(trimmedSummary, {to: 'en'})
 		.then(res => {
 			trans.summary = res.text;
 			gate.summary = true;
