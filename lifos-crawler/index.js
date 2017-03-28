@@ -11,10 +11,11 @@ const session  = require("./session/index");
 
 var mainUrl = "http://lifos.migrationsverket.se/sokning/detaljerad-sokning.html?fullTextSearchType=allWords&baseQuery=&withoutWords=&allWordsInTitle=&countries=&subjectWords=&sources=&dateFieldName=disabled&searchSessionId=75949961394a4db8a3fb5ad8f8ad2bcc&sort=creationDate&page=";
 
-const startPage = 1;
-var currentPage = startPage;
+const START_PAGE = 1;
+const MAX_PAGE = 200;
+var currentPage = START_PAGE;
 
-session.setStartPage(startPage);
+session.setStartPage(START_PAGE);
 
 radio('cache_update').subscribe(function(type,numberOf){
     switch (type) {
@@ -40,16 +41,16 @@ database.updateCache('sumIndex');
 database.updateCache('tagIndex');
 
 radio('crawl_complete').subscribe(function(url){
+    session.addCrawlerIterations(1);
     console.log(colors.yellow.bold("\nCHECKING FOR NEW CRAWL ...\n"));
     currentPage === 1 ? currentPage = 15 : currentPage += 10;
-    if(currentPage < startPage+26){
+    if(currentPage < START_PAGE+MAX_PAGE){
         crawler.crawl(mainUrl+currentPage, function(content,fetchUrl) {
             scraper.extractData(content,fetchUrl);
         });
     } else {
-        session.setLastPage(currentPage);
         console.log(colors.blue.bold("Max number of consecutive iterations reached"));
-        console.log(colors.blue.dim("Run program again but set startPage to a higher number\n"));
+        console.log(colors.blue.dim("Run program again but set START_PAGE to a higher number\n"));
         process.exit();
     }
 
@@ -59,6 +60,7 @@ process.stdin.resume();//so the program will not close instantly
 
 function exitHandler(options, err) {
     if (options.cleanup) {
+        session.setLastPage(currentPage);
         session.printSession();
 		console.log(colors.blue.bold("Exiting crawler\n"));
     }

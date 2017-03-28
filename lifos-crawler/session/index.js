@@ -10,7 +10,8 @@ var session = {
 	sumsWritten: 0,
 	sumsSkipped: 0,
 	startPage: 0,
-	lastPage: 0
+	lastPage: 0,
+	crawlerIterations: 0
 };
 
 module.exports.printSession = function(){
@@ -23,6 +24,7 @@ module.exports.printSession = function(){
 	console.log("  sums skipped:\t"+colors.bold("%s"), session.sumsSkipped);
 	console.log("  start page: \t"+colors.bold("%s"), session.startPage);
 	console.log("  last page:  \t"+colors.bold("%s"), session.lastPage);
+	console.log("  iterations: \t"+colors.bold("%s"), session.crawlerIterations);
 };
 
 module.exports.setNoTagsBefore = function(number){
@@ -50,4 +52,8 @@ module.exports.setStartPage = function(number){
 };
 module.exports.setLastPage = function(number){
 	session.lastPage = number;
+};
+
+module.exports.addCrawlerIterations = function(number){
+	session.crawlerIterations += number;
 };

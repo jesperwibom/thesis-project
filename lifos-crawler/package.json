@@ -1,6 +1,6 @@
 {
   "name": "lifos-crawler",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Custom crawler used to crawl lifos.migrationsverket.se",
   "main": "index.js",
   "scripts": {
@@ -12,6 +12,7 @@
   "dependencies": {
     "cheerio": "^0.22.0",
     "colors": "^1.1.2",
+    "confirm-cli": "^0.4.0",
     "express": "^4.15.2",
     "firebase": "^3.7.3",
     "google-translate-api": "^2.2.2",
