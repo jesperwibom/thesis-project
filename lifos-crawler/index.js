@@ -9,7 +9,7 @@ const scraper 	= require('./scraper/index');
 const database  = require("./database/index");
 const session  = require("./session/index");
 
-var mainUrl = "http://lifos.migrationsverket.se/sokning/detaljerad-sokning.html?fullTextSearchType=allWords&baseQuery=&withoutWords=&allWordsInTitle=&countries=&subjectWords=&sources=&dateFieldName=disabled&searchSessionId=75949961394a4db8a3fb5ad8f8ad2bcc&sort=creationDate&page=";
+var mainUrl = "http://lifos.migrationsverket.se/sokning/detaljerad-sokning.html?fullTextSearchType=allWords&baseQuery=&withoutWords=&allWordsInTitle=&countries=&subjectWords=&sources=&dateFieldName=disabled&searchSessionId=017c121c1436450f8cb356f143debb22&sort=creationDate&page=";
 
 const START_PAGE = 1;
 const MAX_PAGE = 200;

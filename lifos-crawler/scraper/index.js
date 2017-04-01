@@ -39,6 +39,7 @@ module.exports.extractData = function(html,url) {
 
 	for(var i = 0; i < tags.length; i++){
 		var tag = tags[i];
+		tag = tag.replace(/\./g,"").replace(/\#/g,"").replace(/\$/g,"").replace(/\[/g,"").replace(/\]/g,"");
 		if(database.getCache("tagIndex")[tag]){
 			//console.log(colors.green.bold("TAG ALREADY EXISTS : ")+tag);
 			session.addTagsSkipped(1);
