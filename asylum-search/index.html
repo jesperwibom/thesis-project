@@ -4,31 +4,173 @@
 		<meta charset="utf-8">
 		<meta name="description" content="">
 		<meta name="viewport" content="width=device-width, initial-scale=1">
-		<title>{{title}}</title>
+		<title>*</title>
 		<link rel="stylesheet" href="style.css">
 	</head>
 	<body>
 		<div id="app">
-			<h1>{{title}}</h1>
-			<p>{{message}}</p>
-			<p>{{copy}}</p>
-			<input v-model="search">
-			<p>searching for: {{search}}</p>
+			<h1>Lifos*</h1>
+			<p>An alternative search for Lifos</p>
+			<div id="search_field_container">
+				<div id="search_field">
+					<input class="search-field" id="autocomplete_input" type="text" v-model="suggestion" disabled="disabled" />
+					<input class="search-field" id="search_input" type="text" v-model="searchTerm" v-on:keyup.13="searchTagIndex" v-on:keyup="updateSuggestion" placeholder="filter tag" />
+				</div>
+			</div>
+
+			<h4>filters:</h4>
+			<ul id="filter_list">
+				<li class="filter-item" v-for="tagMeta in filter">
+					{{tagMeta.label}}
+				</li>
+			</ul>
+			<hr>
+			<ul>
+				<li v-for="entry in filtered">
+					<h3>{{ entry.sv.title }}</h3>
+					<p>{{ entry.sv.abstract }}</p>
+					<ul class="tag-list">
+						<li class="tag-item" v-for="tag in entry.tags" v-on:click="addTag">{{tag}}</li>
+					</ul>
+				</li>
+			</ul>
 		</div>
 
-		<script type="text/javascript" src="https://www.gstatic.com/firebasejs/3.7.3/firebase.js"></script>
 		<script type="text/javascript" src="https://unpkg.com/vue"></script>
+		<script type="text/javascript" src="https://www.gstatic.com/firebasejs/3.7.3/firebase.js"></script>
+		<script src="https://unpkg.com/vuefire/dist/vuefire.js"></script>
 		<script type="text/javascript" src="scripts/index.js"></script>
 		<script type="text/javascript">
-			var title = 'Lifos*'
-				message = 'An alternative search for Lifos',
-				copy = 'lifos.migrationsverket.se',
-				search = 'search here';
 
- 			new Vue({
+			var searchTerm = '';
+			var suggestion = '';
+			var filter = {};
+			var sumData = {};
+
+ 			var vm = new Vue({
  				el: '#app',
- 				data: {title,message,copy,search}
+ 				data: {
+ 					searchTerm,
+ 					suggestion,
+ 					filter,
+ 					sumData
+ 				},
+ 				computed: {
+ 					filterLogic: function(){
+
+ 						/*// set up variables
+ 						var allAvaliableSummaries = {};
+ 						var filteredSummaries = {};
+ 						var sumsReturn = {};
+
+ 						// populate allAvaliableSummaries
+ 						for(var tagMeta in this.filter){
+ 							for(var sumIndexRef in this.filter[tagMeta].sum_index_refs){
+ 								// get sum id
+ 								var sumId = this.filter[tagMeta].sum_index_refs[sumIndexRef].sum_index_ref;
+ 								allAvaliableSummaries[sumId] = sumId;
+ 							}
+ 						}
+ 						// console.log(Object.keys(allAvaliableSummaries).length);
+ 						// console.log(allAvaliableSummaries)
+
+ 						filteredSummaries = allAvaliableSummaries;
+
+						for(var sum in allAvaliableSummaries){
+							var sumIndexRef = allAvaliableSummaries[sum];
+							var sumMetaRef = cache.sumIndex[sumIndexRef].sum_meta_ref;
+							var sumDataRef = cache.sumIndex[sumIndexRef].sum_data_ref;
+
+							sumsReturn[sumIndexRef] = this.sumData[sumDataRef];
+							sumsReturn[sumIndexRef].tags = [];
+
+							for(var tag in cache.sumMeta[sumMetaRef].tag_index_refs){
+								var tagId = cache.sumMeta[sumMetaRef].tag_index_refs[tag].tag_index_ref;
+								sumsReturn[sumIndexRef].tags.push(tagId);
+							}
+							for(var tagMeta in this.filter){
+								var flag = false;
+								var tagLabel = this.filter[tagMeta].label;
+
+								// is the summary including all filters?
+								for(var i = 0; i < sumsReturn[sumIndexRef].tags.length; i++){
+									var sumLabel = sumsReturn[sumIndexRef].tags[i];
+									if(tagLabel == sumLabel){
+										flag = true;
+									}
+								}
+								if(!flag){
+									console.log(sum, "NOT found in",tagLabel);
+									delete filteredSummaries[sum];
+								} else {
+									console.log(sum, 'FOUND in', tagLabel);
+								}
+							}
+						}*/
+
+						// console.log(Object.keys(filteredSummaries).length);
+ 						// console.log(filteredSummaries)
+
+ 						var final = {
+ 							15198: "-Kge5SqY0rLSDpiao0SR",
+ 							15200: "-Kge5T1PCm7BOy_TtoVt"
+ 						};
+ 						/*
+ 						for(var sum in filteredSummaries){
+ 							final[sum] = sumsReturn[sum];
+ 						}
+*/
+						//return an array of sum ids
+ 						return final;
+ 					},
+ 					filtered: function(){
+ 						console.log('Evaluating FILTERED');
+ 						var obj = {};
+ 						for(var id in this.filterLogic){
+ 							console.log(id);
+ 							var dataKey = this.filterLogic[id];
+ 							console.log(dataKey);
+ 							if(!this.sumData[id]){
+ 								Vue.set(this.sumData, id, {
+ 									en: {
+ 										title: "...",
+ 										abstract: "...",
+ 										summary: "..."
+ 									},
+ 									sv: {
+ 										title: "...",
+ 										abstract: "...",
+ 										summary: "..."
+ 									}
+ 								});
+ 								storeSumData(id,dataKey);
+ 							}
+ 							console.log(this.sumData[id]);
+ 							obj[id] = this.sumData[id];
+ 						}
+ 						console.log(obj);
+
+ 						return obj;
+ 					}
+ 				},
+ 				methods: {
+ 					searchTagIndex: function(ev){
+ 						var query = this.suggestion || this.searchTerm;
+ 						searchTag(query);
+ 					},
+ 					updateSuggestion: function(ev){
+ 						if(this.searchTerm != ""){
+ 							this.suggestion = suggestTag(this.searchTerm);
+ 						} else {
+ 							this.suggestion = "";
+ 						}
+ 					},
+ 					addTag: function(ev){
+ 						searchTag(ev.target.innerText);
+ 					}
+ 				}
  			});
+
 		</script>
 	</body>
 </html>
