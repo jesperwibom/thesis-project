@@ -18,23 +18,38 @@ var cache = {
 	sumMeta: {}
 };
 
+var readyFlags = {
+	tagIndex: false,
+	tagMeta: false,
+	sumIndex: false,
+	sumMeta: false
+};
+
 database.ref('tag_index').once("value", function(data){
 	cache.tagIndex = data.val() || {};
 	// var nrInDb = Object.keys(cache.tagIndex).length;
 	// console.log("number of tags in database: "+nrInDb);
+	readyFlags.tagIndex = true;
+	tryReadyFlags();
 });
 database.ref('tag_meta').once("value", function(data){
 	cache.tagMeta = data.val() || {};
 	// var nrInDb = Object.keys(cache.tagMeta).length;
+	readyFlags.tagMeta = true;
+	tryReadyFlags();
 });
 database.ref('sum_index').once("value", function(data){
 	cache.sumIndex = data.val() || {};
 	// var nrInDb = Object.keys(cache.sumIndex).length;
 	// console.log("number of sums in database: "+nrInDb);
+	readyFlags.sumIndex = true;
+	tryReadyFlags();
 });
 database.ref('sum_meta').once("value", function(data){
 	cache.sumMeta = data.val() || {};
 	// var nrInDb = Object.keys(cache.sumMeta).length;
+	readyFlags.sumMeta = true;
+	tryReadyFlags();
 });
 
 function searchTag(tag){
@@ -42,16 +57,8 @@ function searchTag(tag){
 	tag = tag.replace(/\./g,"").replace(/\#/g,"").replace(/\$/g,"").replace(/\[/g,"").replace(/\]/g,"");
 	if(cache.tagIndex[tag]){
 
-		var tagMetaKey = cache.tagIndex[tag].tag_meta_ref
-		//filter[tagMetaKey] = cache.tagMeta[tagMetaKey];
-		Vue.set(vm.filter, tagMetaKey, cache.tagMeta[tagMetaKey])
-		/*for (var key in cache.tagMeta[tagMetaKey].sum_index_refs) {
-			if (cache.tagMeta[tagMetaKey].sum_index_refs.hasOwnProperty(key)) {
-				var sumIndexKey = cache.tagMeta[tagMetaKey].sum_index_refs[key].sum_index_ref;
-				var sumDataKey = cache.sumIndex[sumIndexKey].sum_data_ref;
-				// toSessionCache(sumDataKey);
-			}
-		}*/
+		var tagMetaKey = getTagMetaRef(tag);
+		Vue.set(vm.filter, tagMetaKey, cache.tagMeta[tagMetaKey]);
 		// display of sum_data posts are taken care by vue
 
 		return true;
@@ -74,21 +81,20 @@ function suggestTag(request){
 	return fixed;
 };
 
-/*function toSessionCache(sumDataKey){
-	if(!vm.sumData[sumDataKey]){
-		database.ref('sum_data/'+sumDataKey).once("value", function(data){
-			var val = data.val() || {};
-			Vue.set(vm.sumData, sumDataKey, val);
-		});
-	}
-}*/
-
 function storeSumData(id,key){
-	// find sumDataKey
-
 	// get data
 	database.ref('sum_data/'+key).once("value", function(data){
 		var val = data.val() || {};
 		Vue.set(vm.sumData, id, val);
 	});
+}
+
+function getTagMetaRef(tag){
+	return cache.tagIndex[tag].tag_meta_ref;
+}
+
+function tryReadyFlags(){
+	if(readyFlags.tagIndex && readyFlags.tagMeta && readyFlags.sumIndex && readyFlags.sumMeta){
+		vm.render = true;
+	}
 }

@@ -34,8 +34,8 @@ module.exports.extractData = function(html,url) {
 
 	translator.translateSum(sum,tags,docs,function(sum, trans,tags,docs){
 		database.saveSum(sum,trans,tags,docs);
+		session.addSumsWritten(1);
 	});
-	session.addSumsWritten(1);
 
 	for(var i = 0; i < tags.length; i++){
 		var tag = tags[i];

@@ -11,8 +11,8 @@ const session  = require("./session/index");
 
 var mainUrl = "http://lifos.migrationsverket.se/sokning/detaljerad-sokning.html?fullTextSearchType=allWords&baseQuery=&withoutWords=&allWordsInTitle=&countries=&subjectWords=&sources=&dateFieldName=disabled&searchSessionId=017c121c1436450f8cb356f143debb22&sort=creationDate&page=";
 
-const START_PAGE = 1;
-const MAX_PAGE = 200;
+const START_PAGE = 200;
+const MAX_PAGE = 250;
 var currentPage = START_PAGE;
 
 session.setStartPage(START_PAGE);

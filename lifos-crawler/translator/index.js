@@ -47,6 +47,7 @@ module.exports.translateSum = function(sum,tags,docs,callback){
 			return true;
 		}).catch(err => {
 			console.log(colors.red.bold("COULD NOT FIND TRANSLATION : title :"),sum.title,err.code);
+			gate.title = true;
 			if(gate.title && gate.abstract && gate.summary){
 				callback(sum,trans,tags,docs);
 			}
@@ -62,6 +63,7 @@ module.exports.translateSum = function(sum,tags,docs,callback){
 			return true;
 		}).catch(err => {
 			console.log(colors.red.bold("COULD NOT FIND TRANSLATION : abstract :"),trimmedAbstract,err.code);
+			gate.abstract = true;
 			if(gate.title && gate.abstract && gate.summary){
 				callback(sum,trans,tags,docs);
 			}
@@ -77,6 +79,7 @@ module.exports.translateSum = function(sum,tags,docs,callback){
 			return true;
 		}).catch(err => {
 			console.log(colors.red.bold("COULD NOT FIND TRANSLATION : summary :"),trimmedSummary,err.code);
+			gate.summary = true;
 			if(gate.title && gate.abstract && gate.summary){
 				callback(sum,trans,tags,docs);
 			}
