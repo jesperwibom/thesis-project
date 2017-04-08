@@ -9,14 +9,21 @@ const scraper 	= require('./scraper/index');
 const database  = require("./database/index");
 const session  = require("./session/index");
 
-var mainUrl = "http://lifos.migrationsverket.se/sokning/detaljerad-sokning.html?fullTextSearchType=allWords&baseQuery=&withoutWords=&allWordsInTitle=&countries=&subjectWords=&sources=&dateFieldName=disabled&searchSessionId=017c121c1436450f8cb356f143debb22&sort=creationDate&page=";
+var sessionId = "017c121c1436450f8cb356f143debb22";
+var mainUrl = "http://lifos.migrationsverket.se/sokning/detaljerad-sokning.html?fullTextSearchType=allWords&baseQuery=&withoutWords=&allWordsInTitle=&countries=&subjectWords=&sources=&dateFieldName=disabled&searchSessionId="+sessionId+"&sort=creationDate&page=";
 
-const START_PAGE = 200;
-const MAX_PAGE = 250;
+const START_PAGE = 1;
+const MAX_PAGE = 10;
 var currentPage = START_PAGE;
 
 session.setStartPage(START_PAGE);
 
+
+//update cache, will send out event when done
+database.updateCache('sumIndex');
+database.updateCache('tagIndex');
+
+//when data is cached...
 radio('cache_update').subscribe(function(type,numberOf){
     switch (type) {
         case 'tagIndex':
@@ -24,6 +31,8 @@ radio('cache_update').subscribe(function(type,numberOf){
             break;
         case 'sumIndex':
             session.setNoSumsBefore(numberOf);
+            //when sumIndex is updated start crawl
+            // crawler.crawl take to args: start url, callback function
             crawler.crawl(mainUrl+currentPage, function(content,fetchUrl) {
                 scraper.extractData(content,fetchUrl);
             });
@@ -37,9 +46,7 @@ radio('cache_update').subscribe(function(type,numberOf){
     }
 });
 
-database.updateCache('sumIndex');
-database.updateCache('tagIndex');
-
+// when crawl is complete...
 radio('crawl_complete').subscribe(function(url){
     session.addCrawlerIterations(1);
     console.log(colors.yellow.bold("\nCHECKING FOR NEW CRAWL ...\n"));

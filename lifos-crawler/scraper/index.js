@@ -13,16 +13,22 @@ module.exports.extractData = function(html,url) {
 	var sum = {};
 	var docs = [];
 
+	// gets summary data and document references
+	// if page is not a summary page it returns false
 	if ($('#documentViewerContainer').length){
-		sum = extractSumData($, '#documentViewerContainer');
-		docs = extractDocs($,'.documentViewerTextDistance');
+		sum = extractSumData($, '#documentViewerContainer'); // return obj of sum data
+		docs = extractDocs($,'.documentViewerTextDistance'); // return arr of docs meta
+		console.log(colors.black.bgGreen.bold("Fetch complete:")+" "+colors.yellow.dim.bold(url.subString(32)));
 	} else {
-		console.log(colors.red.dim("not a document summary page"));
+		console.log(colors.black.bgGreen.bold("Fetch complete:")+" "+colors.red.dim("not a document summary page"));
 		return false;
 	}
+
+	// gets summary meta and tags
+	// if no meta data is found it returns false
 	if($('#metadataDisplayMain').length){
-		sum = Object.assign(sum, extractSumMeta($, '#metadataDisplayInformation'));
-		tags = extractTags($, '#metadataDisplayMain');
+		sum = Object.assign(sum, extractSumMeta($, '#metadataDisplayInformation')); // return obj of sum meta and add it to the sum obj
+		tags = extractTags($, '#metadataDisplayMain'); // return arr of tags
 	} else {
 		console.log(colors.red.bold("no meta data found"));
 		return false;
@@ -47,9 +53,10 @@ module.exports.extractData = function(html,url) {
 			continue;
 		}
 		console.log(colors.red.dim("ADDING TAG : ")+tag);
-		session.addTagsWritten(1);
+
 		translator.translateTag(tag,sum.id,sum.url,function(tag,trans,sumId,sumUrl){
 			database.saveTag(tag,trans,sumId,sumUrl);
+			session.addTagsWritten(1);
 		});
 	}
 };

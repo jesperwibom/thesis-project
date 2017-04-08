@@ -16,6 +16,7 @@
     "express": "^4.15.2",
     "firebase": "^3.7.3",
     "google-translate-api": "^2.2.2",
+    "mstranslator": "^2.1.1",
     "radio": "^0.2.0",
     "request": "^2.81.0",
     "simplecrawler": "^1.1.1"
