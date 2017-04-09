@@ -2,9 +2,7 @@
 
 const cheerio = require('cheerio');
 const colors	= require('colors/safe');
-// const translator = require('../translator/index');
 const database = require("../database/index");
-// const session  = require("../session/index");
 
 module.exports.extractData = function(html,url) {
 
@@ -13,14 +11,12 @@ module.exports.extractData = function(html,url) {
 	var summary = {};
 	var documents = [];
 
-	console.log(colors.black.bgGreen.bold("Fetch complete:"));
-
 	// gets summary data and document references
 	// if page is not a summary page it returns false
 	if ($('#documentViewerContainer').length){
 		summary = extractSumData($, '#documentViewerContainer'); // return obj of sum data
 		documents = extractDocs($,'.documentViewerTextDistance'); // return arr of docs meta
-		//console.log(colors.black.bgGreen.bold("Fetch complete:")+" "+colors.yellow.dim.bold(url.subString(32)));
+
 	} else {
 		console.log(colors.red.dim("not a document summary page"));
 		return false;
@@ -40,8 +36,10 @@ module.exports.extractData = function(html,url) {
 	// add the summary url
 	summary.url = url;
 
-	// console.log(summary,tags,documents);
+	// finaly send all data to saveSummary
+	// it will take care of checking the tags and saving tags and docs as well
 	database.saveSummary(summary, tags, documents);
+
 };
 
 function extractTags($, queryString){

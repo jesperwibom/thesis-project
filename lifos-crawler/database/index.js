@@ -1,8 +1,8 @@
 'use strict';
 
 const firebase = require("firebase");
-// const colors	= require('colors/safe');
-// const radio    = require("radio");
+const colors	= require('colors/safe');
+const session  = require("../session/index");
 
 const config = require('../firebase.config');
 firebase.initializeApp(config);
@@ -27,6 +27,7 @@ module.exports.setCacheListeners = function(startUrl,callback){
 	// storing existing tags, summaries and documents to local temporary cache
 	database.ref('tags').once('value',function(data){
 		cache.tags = data.val() || {};
+		session.setTagsBefore(Object.keys(cache.tags).length);
 		initalRead.tags = true;
 		// setting listeners for new tags
 		database.ref('tags').limitToLast(1).on('child_added',function(data){
@@ -34,12 +35,13 @@ module.exports.setCacheListeners = function(startUrl,callback){
 		});
 		// calling callback method if all inital read props are true
 		if(initalRead.tags && initalRead.summaries && initalRead.documents){
-			console.log('all database listeners are set');
+			console.log(colors.green.bold('all database listeners are set'));
 			callback(startUrl);
 		}
 	});
 	database.ref('summaries').once('value',function(data){
 		cache.summaries = data.val() || {};
+		session.setSumsBefore(Object.keys(cache.summaries).length);
 		initalRead.summaries = true;
 		// setting special cache for crawler fetch conditions
 		for(var sum in cache.summaries){
@@ -55,12 +57,13 @@ module.exports.setCacheListeners = function(startUrl,callback){
 		});
 		// calling callback method if all inital read props are true
 		if(initalRead.tags && initalRead.summaries && initalRead.documents){
-			console.log('all database listeners are set');
+			console.log(colors.green.bold('all database listeners are set'));
 			callback(startUrl);
 		}
 	});
 	database.ref('documents').once('value',function(data){
 		cache.documents = data.val() || {};
+		session.setDocsBefore(Object.keys(cache.documents).length);
 		initalRead.documents = true;
 		// setting listeners for new documents
 		database.ref('documents').limitToLast(1).on('child_added',function(data){
@@ -68,7 +71,7 @@ module.exports.setCacheListeners = function(startUrl,callback){
 		});
 		// calling callback method if all inital read props are true
 		if(initalRead.tags && initalRead.summaries && initalRead.documents){
-			console.log('all database listeners are set');
+			console.log(colors.green.bold('all database listeners are set'));
 			callback(startUrl);
 		}
 	});
@@ -107,14 +110,16 @@ module.exports.saveSummary = function(summary,tags,documents){
 			type: "original"
 		}
 	});
+	console.log('new summary added!')
+	session.addSumsWritten(1);
 
 	for(var i = 0; i < tags.length; i++){
 		saveTag(tags[i],sumRef,function(_tagRef,_sumRef){
 			connectTagRefs(_tagRef,_sumRef);
 		});
 	}
+
 	for(var i = 0; i < documents.length; i++){
-		console.log(documents[i]);
 		saveDocument(documents[i],sumRef,function(_docRef,_sumRef){
 			connectDocRefs(_docRef,_sumRef);
 		});
@@ -140,10 +145,11 @@ function saveTag(tag,sumRef,callback){
 		tagRef.set({
 			source: "Lifos",
 			SV: {
-				label: tag,
+				label: tag.toLowerCase(),
 				type: "original"
 			}
 		});
+		session.addTagsWritten(tags.length);
 		callback(tagRef,sumRef);
 		return true;
 	});
@@ -160,6 +166,7 @@ function saveDocument(document,sumRef,callback){
 		}
 	});
 	console.log('new document added!')
+	session.addDocsWritten(documents.length);
 	callback(docRef,sumRef);
 	return true;
 };
