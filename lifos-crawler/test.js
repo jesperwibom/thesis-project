@@ -1,14 +1,18 @@
 const firebase = require('firebase');
+const db = require('./database/index');
 
-// Initialize Firebase
-var config = {
-	apiKey: "AIzaSyAUWImVcHYV043WnDkmKPAfawS260VezLA",
-	authDomain: "altl-a0d6b.firebaseapp.com",
-	databaseURL: "https://altl-a0d6b.firebaseio.com",
-	projectId: "altl-a0d6b",
-	storageBucket: "altl-a0d6b.appspot.com",
-	messagingSenderId: "113484343717"
-};
+var text = "uppehålls tillstånd";
+// var first = text.charCodeAt(0);
+
+// console.log(String.fromCharCode(first),String.fromCharCode(first+1),String.fromCharCode(first+2),String.fromCharCode(first+3),String.fromCharCode(first+4),String.fromCharCode(first+5),String.fromCharCode(first+6),String.fromCharCode(first+7),String.fromCharCode(first+8));
+
+db.saveTag(text,{},function(tagRef){
+	console.log(tagRef);
+
+});
+
+/*
+const config = require('../firebase.config');
 firebase.initializeApp(config);
 
 var db = firebase.database();
@@ -41,4 +45,4 @@ newSum.child("tagRefs").push({
 });
 
 
-console.log('DONE');
+console.log('DONE');*/

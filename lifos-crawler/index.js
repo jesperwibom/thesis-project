@@ -3,22 +3,40 @@
 'use strict';
 
 const colors	= require("colors/safe");
-const radio     = require("radio");
+// const radio     = require("radio");
 const crawler 	= require('./crawler/index');
 const scraper 	= require('./scraper/index');
 const database  = require("./database/index");
-const session  = require("./session/index");
+// const session  = require("./session/index");
 
-var sessionId = "017c121c1436450f8cb356f143debb22";
+// need to be updated before run
+var sessionId = "69307288adc94ea4a32a79e0fc402f9c";
+// Lifos detailed search sorted by date
 var mainUrl = "http://lifos.migrationsverket.se/sokning/detaljerad-sokning.html?fullTextSearchType=allWords&baseQuery=&withoutWords=&allWordsInTitle=&countries=&subjectWords=&sources=&dateFieldName=disabled&searchSessionId="+sessionId+"&sort=creationDate&page=";
 
 const START_PAGE = 1;
 const MAX_PAGE = 10;
 var currentPage = START_PAGE;
 
-session.setStartPage(START_PAGE);
+console.log('STARTING');
+
+database.setCacheListeners(mainUrl+currentPage,function(startUrl){
+    crawler.crawl(startUrl, function(content,fetchUrl) {
+        scraper.extractData(content,fetchUrl);
+    });
+});
 
 
+
+
+
+
+
+
+
+// session.setStartPage(START_PAGE);
+
+/*
 //update cache, will send out event when done
 database.updateCache('sumIndex');
 database.updateCache('tagIndex');
@@ -44,8 +62,9 @@ radio('cache_update').subscribe(function(type,numberOf){
             console.log('cache_update problem');
             break;
     }
-});
+});*/
 
+/*
 // when crawl is complete...
 radio('crawl_complete').subscribe(function(url){
     session.addCrawlerIterations(1);
@@ -61,14 +80,18 @@ radio('crawl_complete').subscribe(function(url){
         process.exit();
     }
 
-});
+});*/
+
+
+
+
 
 process.stdin.resume();//so the program will not close instantly
 
 function exitHandler(options, err) {
     if (options.cleanup) {
-        session.setLastPage(currentPage);
-        session.printSession();
+        // session.setLastPage(currentPage);
+        // session.printSession();
 		console.log(colors.blue.bold("Exiting crawler\n"));
     }
     if (options.exit) {

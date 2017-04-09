@@ -1,209 +1,195 @@
 'use strict';
 
 const firebase = require("firebase");
-const colors	= require('colors/safe');
-const radio    = require("radio");
+// const colors	= require('colors/safe');
+// const radio    = require("radio");
 
-var config = {
-	apiKey: "AIzaSyD93bqwNxuyflXc0AFAGhx6QdaFJQQ8yZQ",
-	authDomain: "lifosalternativesearch.firebaseapp.com",
-	databaseURL: "https://lifosalternativesearch.firebaseio.com",
-	storageBucket: "lifosalternativesearch.appspot.com",
-	messagingSenderId: "658803108313"
-};
-
+const config = require('../firebase.config');
 firebase.initializeApp(config);
 const database = firebase.database();
 
+// creating empty cache object
 var cache = {
-	tagIndex: {},
-	sumIndex: {},
-	docIndex: {}
+	tags: {},
+	summaries: {},
+	documents: {},
+	sumIDs: {}
 };
 
-firebase.database().ref('tag_index').on('child_added',function(data){
-	cache.tagIndex[data.key] = data.val();
-});
-firebase.database().ref('sum_index').on('child_added',function(data){
-	cache.sumIndex[data.key] = data.val();
-});
-firebase.database().ref('doc_index').on('child_added',function(data){
-	cache.docIndex[data.key] = data.val();
-});
+var initalRead = {
+	tags: false,
+	summaries: false,
+	documents: false
+};
 
-module.exports.updateCache = function(type){
-	switch (type) {
-		case "tagIndex":
-			firebase.database().ref('tag_index').once('value',function(data){
-				cache.tagIndex = data.val() || {};
-				var noTagsInDB = Object.keys(cache.tagIndex).length;
-				// console.log("cache.tagIndex VALUE UPDATED",data.val());
-				radio('cache_update').broadcast(type,noTagsInDB);
-			});
-			break;
-		case "sumIndex":
-			firebase.database().ref('sum_index').once('value',function(data){
-				cache.sumIndex = data.val() || {};
-				var noSumsInDB = Object.keys(cache.sumIndex).length;
-				// console.log("cache.sumIndex VALUE UPDATED",data.val());
-				radio('cache_update').broadcast(type,noSumsInDB);
-			});
-			break;
-		case "docIndex":
-			firebase.database().ref('doc_index').once('value',function(data){
-				cache.docIndex = data.val() || {};
-				var noDocsInDB = Object.keys(cache.docIndex).length;
-				// console.log("cache.docIndex VALUE UPDATED",data.val());
-				radio('cache_update').broadcast(type,noDocsInDB);
-			});
-			break;
-		default:
-			console.log(colors.red.bold("updateCache needs a type string ('tagIndex'|'sumIndex'|'docIndex')"));
-			break;
-	}
-}
+module.exports.setCacheListeners = function(startUrl,callback){
+	console.log('setting database listeners...');
+	// storing existing tags, summaries and documents to local temporary cache
+	database.ref('tags').once('value',function(data){
+		cache.tags = data.val() || {};
+		initalRead.tags = true;
+		// setting listeners for new tags
+		database.ref('tags').limitToLast(1).on('child_added',function(data){
+			cache.tags[data.key] = data.val();
+		});
+		// calling callback method if all inital read props are true
+		if(initalRead.tags && initalRead.summaries && initalRead.documents){
+			console.log('all database listeners are set');
+			callback(startUrl);
+		}
+	});
+	database.ref('summaries').once('value',function(data){
+		cache.summaries = data.val() || {};
+		initalRead.summaries = true;
+		// setting special cache for crawler fetch conditions
+		for(var sum in cache.summaries){
+			var _id = cache.summaries[sum].source.id;
+			var _url = cache.summaries[sum].source.url;
+			cache.sumIDs[_id] = _url;
+		}
+		// setting listeners for new summaries
+		database.ref('summaries').limitToLast(1).on('child_added',function(data){
+			var sumObj = data.val();
+			cache.summaries[data.key] = sumObj;
+			cache.sumIDs[sumObj.source.id] = sumObj.source.url;
+		});
+		// calling callback method if all inital read props are true
+		if(initalRead.tags && initalRead.summaries && initalRead.documents){
+			console.log('all database listeners are set');
+			callback(startUrl);
+		}
+	});
+	database.ref('documents').once('value',function(data){
+		cache.documents = data.val() || {};
+		initalRead.documents = true;
+		// setting listeners for new documents
+		database.ref('documents').limitToLast(1).on('child_added',function(data){
+			cache.documents[data.key] = data.val();
+		});
+		// calling callback method if all inital read props are true
+		if(initalRead.tags && initalRead.summaries && initalRead.documents){
+			console.log('all database listeners are set');
+			callback(startUrl);
+		}
+	});
+};
 
 module.exports.getCache = function(type){
 	switch (type) {
-		case "tagIndex":
-			return cache.tagIndex;
-		case "sumIndex":
-			return cache.sumIndex;
-		case "docIndex":
-			return cache.docIndex;
+		case "tags":
+			return cache.tags;
+		case "summaries":
+			return cache.summaries;
+		case "documents":
+			return cache.documents;
+		case "sumIDs":
+			return cache.sumIDs;
 		default:
 			return cache;
 	}
 };
 
-module.exports.saveTag = function(tag, trans, sumId, sumUrl){
-	tag = tag.replace(/\./g,"").replace(/\#/g,"").replace(/\$/g,"").replace(/\[/g,"").replace(/\]/g,"");
-	trans = trans || "NOT_TRANSLATED";
-	trans = trans.replace(/\./g,"").replace(/\#/g,"").replace(/\$/g,"").replace(/\[/g,"").replace(/\]/g,"");
-
-	if(!cache.tagIndex[tag]){
-		var tagDataRef = firebase.database().ref('tag_data').push();
-		tagDataRef.set({
-			sv:{
-				label: tag
-			},
-			en: {
-				label: trans
-			}
-		});
-
-		var tagMetaRef = firebase.database().ref('tag_meta').push();
-		tagMetaRef.update({
-			label: tag
-		});
-		var sumReferenceDataRef = tagMetaRef.child('sum_index_refs').push();
-		sumReferenceDataRef.update({
-			sum_index_ref: sumId,
-			sum_url: sumUrl
-		});
-
-		var tagIndexRef = firebase.database().ref('tag_index/'+tag).set({
-			added: firebase.database.ServerValue.TIMESTAMP,
-			language_sv: {
-				sv: true
-			},
-			tag_meta_ref: tagMetaRef.key,
-			tag_data_ref: tagDataRef.key
-		});
-
-		if(trans !== "NOT_TRANSLATED"){
-			var tagIndexTransRef = firebase.database().ref('tag_index/'+trans).update({
-				added: firebase.database.ServerValue.TIMESTAMP,
-				tag_meta_ref: tagMetaRef.key,
-				tag_data_ref: tagDataRef.key
-			},function(){
-				firebase.database().ref('tag_index/'+trans+'/language_en').update({en: true});
-			});
+// save summary and iterate tags and documents and save those
+module.exports.saveSummary = function(summary,tags,documents){
+	// because fetch conditions are set to ignore summaries already in database
+	// there is no need to check if the summary already exists
+	var sumRef = database.ref('summaries').push();
+	sumRef.set({
+		source: {
+			url: summary.url,
+			id: summary.id,
+			published: summary.published,
+			publisher: summary.publisher
+		},
+		SV: {
+			title: summary.title,
+			description: summary.description,
+			type: "original"
 		}
+	});
+
+	for(var i = 0; i < tags.length; i++){
+		saveTag(tags[i],sumRef,function(_tagRef,_sumRef){
+			connectTagRefs(_tagRef,_sumRef);
+		});
 	}
+	for(var i = 0; i < documents.length; i++){
+		console.log(documents[i]);
+		saveDocument(documents[i],sumRef,function(_docRef,_sumRef){
+			connectDocRefs(_docRef,_sumRef);
+		});
+	}
+
 };
 
-module.exports.saveTagSumReference = function(tag,sumId,sumUrl){
-	firebase.database().ref('tag_index/'+tag).once('value',function(data){
-		var key = data.child('tag_meta_ref').val();
-		var tagMetaRef = firebase.database().ref('tag_meta/'+key);
-		var sumReferenceDataRef = tagMetaRef.child('sum_index_refs').push();
-		sumReferenceDataRef.update({
-			sum_index_ref: sumId,
-			sum_url: sumUrl
+// if tag don't exist in database save tag to database
+function saveTag(tag,sumRef,callback){
+	// using firebase filtering functionality to streamline request
+	// sort on the original labels, starting from the first character ending the query at the next character in the alphabet (or in unicode)
+	database.ref('tags').orderByChild('SV/label').startAt(tag.charAt(0)).endAt(String.fromCharCode(tag.charCodeAt(0)+1)).once("value", function(data){
+		let tagRef;
+		// iterate over the found tags
+		for(let t in data.val()){
+			if(data.val()[t].SV.label == tag){
+				tagRef = database.ref('tags/'+t);
+				callback(tagRef,sumRef);
+				return false;
+			}
+		}
+		tagRef = database.ref('tags').push();
+		tagRef.set({
+			source: "Lifos",
+			SV: {
+				label: tag,
+				type: "original"
+			}
 		});
-	})
+		callback(tagRef,sumRef);
+		return true;
+	});
+};
+
+function saveDocument(document,sumRef,callback){
+	let docRef;
+	docRef = database.ref('documents').push();
+	docRef.set({
+		source: {
+			url: document.url,
+			label: document.label,
+			type: document.type
+		}
+	});
+	console.log('new document added!')
+	callback(docRef,sumRef);
+	return true;
+};
+
+// connect the summary and tag references so that they know of each other
+function connectTagRefs(_tagRef,_sumRef){
+	// set the tag entry reference key in the summary
+	_sumRef.child('tagsRef').push({
+		tagRef: _tagRef.key
+	});
+	// set the summary entry reference key in the tag
+	_tagRef.child('sumsRef').push({
+		sumRef: _sumRef.key
+	});
 }
 
-module.exports.saveSum = function(sum, trans, tags, docs){
-	if(!cache.sumIndex[sum.id]){
-		console.log(colors.yellow.dim("ADDING SUM : ")+sum.id);
-		var sumDataRef = firebase.database().ref('sum_data').push();
-		sumDataRef.set({
-			sv:{
-				title: sum.title,
-				abstract: sum.abstract,
-				summary: sum.summary
-			},
-			en: {
-				title: trans.title,
-				abstract: trans.abstract,
-				summary: trans.summary
-			}
-		});
-		var sumMetaRef = firebase.database().ref('sum_meta').push();
-		sumMetaRef.update({
-			url: sum.url,
-			publish_id: sum.id,
-			publish_date: sum.date,
-			source: sum.source
-		});
-		//for each document a new reference needs to be pushed
-		for(var i = 0; i < docs.length; i++){
-			var docReferenceDataRef = sumMetaRef.child('doc_index_refs').push();
-			docReferenceDataRef.update({
-				doc_index_ref: docs[i].id,
-				doc_url: docs[i].url
-			});
-		}
-		//for each tag a new reference needs to be pushed
-		for(var i = 0; i < tags.length; i++){
-			var tagReferenceDataRef = sumMetaRef.child('tag_index_refs').push();
-			tagReferenceDataRef.update({
-				tag_index_ref: tags[i]
-			});
-		}
-		var sumIndexRef = firebase.database().ref('sum_index/'+sum.id).set({
-			added: firebase.database.ServerValue.TIMESTAMP,
-			sum_meta_ref: sumMetaRef.key,
-			sum_data_ref: sumDataRef.key
-		});
-	}
-};
+function connectDocRefs(_docRef,_sumRef){
+	// set the tag entry reference key in the summary
+	_sumRef.child('docsRef').push({
+		docRef: _docRef.key
+	});
+	// set the summary entry reference key in the tag
+	_docRef.child('sumsRef').push({
+		sumRef: _sumRef.key
+	});
+}
 
-/*
-//for every document found
-var documentRef = firebase.database().ref('documents').push({
-	meta:{
-		type: "LIFOS_DOC",
-		author: "john doe",
-		url: "http://lifos.migrationsverket.se/document?download=12345",
-		date: "20160401",
-		no_pages: "3"
-	},
-	data:{
-		sv: {
-			title: "Rättsligt ställningstagande till ...."
-			//after this push every page in here
-		}
-	}
-}, function(){
-	//for every page in every document
-	for(var i = 0; i < 3; i++){
-		firebase.database().ref('documents/'+documentRef.key+'/data/sv/pages').push({
-			page_nr: i+1,
-			text: "this is the text on a page, parsed by a document reader"
-		});
-	}
-});
-*/
+
+// NOT USED ANYMORE, just use pushId as keys
+// replace characters that firebase cannot use in key
+function fixTag(tag){
+	return tag = tag.replace(/\./g,"").replace(/\#/g,"").replace(/\$/g,"").replace(/\[/g,"").replace(/\]/g,"");
+};

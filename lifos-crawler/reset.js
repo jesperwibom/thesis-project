@@ -5,14 +5,7 @@
 const firebase = require("firebase");
 const confirm 	= require('confirm-cli');
 const colors	= require('colors/safe');
-
-var config = {
-	apiKey: "AIzaSyD93bqwNxuyflXc0AFAGhx6QdaFJQQ8yZQ",
-	authDomain: "lifosalternativesearch.firebaseapp.com",
-	databaseURL: "https://lifosalternativesearch.firebaseio.com",
-	storageBucket: "lifosalternativesearch.appspot.com",
-	messagingSenderId: "658803108313"
-};
+const config = require('../firebase.config');
 
 firebase.initializeApp(config);
 const database = firebase.database();

@@ -7,16 +7,23 @@ const radio 	= require("radio");
 const session  = require("../session/index");
 
 module.exports.crawl = function(url, callback) {
-	let crawler = new Crawler(url);
-	let firstPage = parseInt(url.split('=').pop());
+	console.log('running crawl setup...');
 
-	crawler.interval				= 20;
-	crawler.maxConcurrency		= 20;
+	// get url to crawl
+	let crawler = new Crawler(url);
+	// get the current page number
+	// (used to add fetch conditon not to go to far back or forward before it should)
+	let currentPageNumber = parseInt(url.split('=').pop());
+
+	// configure the crawler
+	crawler.interval				= 500;
+	crawler.maxConcurrency		= 1;
 	crawler.maxDepth				= 3;
 	crawler.respectRobotsTxt	= false;
 	crawler.filterByDomain 		= false; //see the fetch conditions
 	crawler.domainWhitelist		= ["http://lifos.migrationsverket.se/","http://www.migrationsverket.se/","http://migrationsverket.se/"];
 
+	// array of pages to be ignored
 	var ignoreUrls = [
 		"detaljerad-sokning",
 		"fokuslander",
@@ -45,8 +52,7 @@ module.exports.crawl = function(url, callback) {
 
 	// create common pages ignore RegExp
 	var ignoreUrlsRegExp = getIgnoreUrlsRegExp(ignoreUrls);
-	// from cache get already stored summaries (not a call to the database, only checking local cache)
-	var alreadyParsedUrls = database.getCache('sumIndex');
+
 
 	// CONDITIONS
 	// Setting conditions for crawler to ignore pages
@@ -56,9 +62,11 @@ module.exports.crawl = function(url, callback) {
 	});
 	// Ignore already stored summaries:
 	var conditionIgnoreSums = crawler.addFetchCondition(function(queueItem, referrerQueueItem, callback) {
+		// from cache get already stored summaries (not a call to the database, only checking local cache)
+		var alreadyParsedUrls = database.getCache('sumIDs');
 		var id = queueItem.path.split('=')[1];
 		if(alreadyParsedUrls[id]){
-			session.addSumsSkipped(1);
+			//session.addSumsSkipped(1);
 		}
 		callback(null, !alreadyParsedUrls[id]);
 	});
@@ -68,8 +76,8 @@ module.exports.crawl = function(url, callback) {
 			callback(null, true);
 		} else {
 			//console.log('PAGE url');
-			var pageNr = queueItem.path.split("=").pop();
-			if(pageNr < (firstPage-10) || pageNr > (firstPage+10)){
+			var fetchPageNumber = queueItem.path.split("=").pop();
+			if(fetchPageNumber < (currentPageNumber-10) ||fetchPageNumber > (currentPageNumber+10)){
 				//console.log('PAGE url TO HIGH/LOW');
 				callback(null, false);
 			} else {
@@ -105,12 +113,12 @@ module.exports.crawl = function(url, callback) {
 	crawler.on("complete", function(){
 		console.log(colors.blue.bold("\nCrawl finished"));
 		console.log(colors.bgBlue.black.bold("< < <\t< < <\t< < <"));
-		radio('crawl_complete').broadcast("next");
+		//radio('crawl_complete').broadcast("next");
 	});
 
 	// When fetch is complete (fetchConditions apply) log and call callback function ( scarper.extractData)
 	crawler.on("fetchcomplete", function(queueItem, responseBuffer, response) {
-		//console.log(colors.black.bgGreen.bold("Fetch complete:")+" "+colors.yellow.bold.dim("%s")+" "+colors.yellow.dim("(%d bytes)"), queueItem.url, responseBuffer.length);
+		console.log(colors.black.bgGreen.bold("Fetch complete:")+" "+colors.yellow.bold.dim("%s")+" "+colors.yellow.dim("(%d bytes)"), queueItem.url, responseBuffer.length);
 		//console.log(colors.dim("content-type: ")+colors.bold.dim("\t%s"), response.headers['content-type']);
 		callback(responseBuffer,queueItem.url);
 	});

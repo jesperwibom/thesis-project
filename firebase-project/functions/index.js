@@ -47,32 +47,49 @@ exports.translateTag = functions.database.ref('/tags/{pushId}/SV').onWrite(event
 	});
 });
 
-
-
 exports.translateSum = functions.database.ref('/summaries/{pushId}/SV').onWrite(event => {
 	const sumRef = event.data.ref.parent;
 
 	let ogTitle = event.data.val().title;
 	let ogDescription = event.data.val().description;
 
-	translateClient.translate([ogTitle,ogDescription], 'en')
-		.then((results) => {
-			const transTitle = results[0][0];
-			const transDescription = results[0][1];
-			sumRef.child('EN').update({
-				title: transTitle,
-				description: transDescription
-			});
-	});
-	translateClient.translate([ogTitle,ogDescription], 'ar')
-		.then((results) => {
-			const transTitle = results[0][0];
-			const transDescription = results[0][1];
-			sumRef.child('AR').update({
-				title: transTitle,
-				description: transDescription
-			});
-	});
+	if(ogDescription === 'No description found'){
+		translateClient.translate(ogTitle, 'en')
+			.then((results) => {
+				const transTitle = results[0];
+				sumRef.child('EN').update({
+					title: transTitle,
+					description: 'No description found'
+				});
+		});
+		translateClient.translate(ogTitle, 'ar')
+			.then((results) => {
+				const transTitle = results[0];
+				sumRef.child('AR').update({
+					title: transTitle,
+					description: 'تعذر العثور على الوصف'
+				});
+		});
+	} else {
+		translateClient.translate([ogTitle,ogDescription], 'en')
+			.then((results) => {
+				const transTitle = results[0][0];
+				const transDescription = results[0][1];
+				sumRef.child('EN').update({
+					title: transTitle,
+					description: transDescription
+				});
+		});
+		translateClient.translate([ogTitle,ogDescription], 'ar')
+			.then((results) => {
+				const transTitle = results[0][0];
+				const transDescription = results[0][1];
+				sumRef.child('AR').update({
+					title: transTitle,
+					description: transDescription
+				});
+		});
+	}
 
 	return sumRef.update({
 		EN: {
@@ -86,4 +103,77 @@ exports.translateSum = functions.database.ref('/summaries/{pushId}/SV').onWrite(
 			type: "translation"
 		}
 	});
+});
+/*
+exports.countTags = functions.database.ref('/tags/{pushId}').onWrite(event => {
+	const tagsRef = event.data.ref.parent;
+	const metaRef = tagsRef.parent.child("meta/tagCount");
+
+	return metaRef.transaction(current => {
+		if (event.data.exists() && !event.data.previous.exists()) {
+			return (current || 0) + 1;
+		} else if (!event.data.exists() && event.data.previous.exists()) {
+			return (current || 0) - 1;
+		}
+	});
+});*/
+
+exports.recountTags = functions.database.ref('/meta/tagCount').onWrite(event => {
+	if (!event.data.exists()) {
+		const countRef = event.data.ref;
+		const metaRef = event.data.ref.parent;
+		const tagRef = metaRef.parent.child('tags');
+
+		return tagRef.once('value')
+		  .then(snapshot => countRef.set(snapshot.numChildren()));
+	}
+});
+/*
+exports.countSummaries = functions.database.ref('/summaries/{pushId}').onWrite(event => {
+	const sumRef = event.data.ref.parent;
+	const metaRef = sumRef.parent.child("meta/summaryCount");
+
+	return metaRef.transaction(current => {
+		if (event.data.exists() && !event.data.previous.exists()) {
+			return (current || 0) + 1;
+		} else if (!event.data.exists() && event.data.previous.exists()) {
+			return (current || 0) - 1;
+		}
+	});
+});
+*/
+exports.recountSummaries = functions.database.ref('/meta/summaryCount').onWrite(event => {
+	if (!event.data.exists()) {
+		const countRef = event.data.ref;
+		const metaRef = event.data.ref.parent;
+		const sumRef = metaRef.parent.child('summaries');
+
+		return sumRef.once('value')
+		  .then(snapshot => countRef.set(snapshot.numChildren()));
+	}
+});
+
+/*
+exports.countDocuments = functions.database.ref('/documents/{pushId}').onWrite(event => {
+	const docRef = event.data.ref.parent;
+	const metaRef = docRef.parent.child("meta/documentCount");
+
+	return metaRef.transaction(current => {
+		if (event.data.exists() && !event.data.previous.exists()) {
+			return (current || 0) + 1;
+		} else if (!event.data.exists() && event.data.previous.exists()) {
+			return (current || 0) - 1;
+		}
+	});
+});
+*/
+exports.recountDocuments = functions.database.ref('/meta/documentCount').onWrite(event => {
+	if (!event.data.exists()) {
+		const countRef = event.data.ref;
+		const metaRef = event.data.ref.parent;
+		const docRef = metaRef.parent.child('documents');
+
+		return docRef.once('value')
+		  .then(snapshot => countRef.set(snapshot.numChildren()));
+	}
 });
