@@ -1,7 +1,7 @@
 <template>
 	<div v-bind:class="filterLogic" v-on:click="toggleFilterLogic">
 		<span class="search-filter-label">{{tag.label}}</span>
-		<span v-on:click="removeFilter"> X</span>
+		<span v-on:click="removeFilter"><img src="../assets/np_close_806739_FFFFFF.png" alt=""></span>
 	</div>
 </template>
 
@@ -41,12 +41,17 @@ export default {
 	div {
 		font-size: 20px;
 		display: inline-block;
-		padding: 2px 12px 2px 12px;
+		padding: 2px 10px 2px 10px;
 		border-radius: 5px;
 		color: white;
 		cursor: pointer;
 		user-select: none;
 		background-color: #373737;
+	}
+	img {
+		margin-left: 6px;
+		height: 10px;
+		width: auto;
 	}
 	/*.include {
 		background-color: #5AA845;

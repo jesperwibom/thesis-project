@@ -1,9 +1,11 @@
 <template>
   <div id="app">
-    <LanguageSelector v-on:languageChanged="changeLanguage"></LanguageSelector>
-    <SearchField :lang="language" :tagList="currentTagList" v-on:addTagFilter="addFilterKey"></SearchField>
-    <TagFilter class="tag-filters" v-for="filter in activeFilterLabels" :tag="filter" v-on:filterLogicChanged="changeFilterLogic" v-on:filterRemoved="removeFilterKey" :key="filter"></TagFilter>
-
+    <div class="fixed-header">
+      <InfoSection class="info-button"></InfoSection>
+      <LanguageSelector class="language-selector" v-on:languageChanged="changeLanguage"></LanguageSelector>
+      <SearchField class="search-field" :lang="language" :tagList="currentTagList" v-on:addTagFilter="addFilterKey"></SearchField>
+      <TagFilter class="tag-filters" v-for="filter in activeFilterLabels" :tag="filter" v-on:filterLogicChanged="changeFilterLogic" v-on:filterRemoved="removeFilterKey" :key="filter"></TagFilter>
+    </div>
     <ResultList :lang="language" :filters="activeFilters"></ResultList>
 
   </div>
@@ -15,6 +17,7 @@ import TagFilter from './components/TagFilter'
 import LanguageSelector from './components/LanguageSelector'
 import SearchField from './components/SearchField'
 import ResultList from './components/ResultList'
+import InfoSection from './components/InfoSection'
 
 import db from './database'
 
@@ -24,7 +27,8 @@ export default {
     TagFilter,
     LanguageSelector,
     SearchField,
-    ResultList
+    ResultList,
+    InfoSection
   },
 
   data () {
@@ -162,14 +166,37 @@ export default {
 }
 </script>
 
-<style>
+<style scoped>
 #app {
   font-family: 'Avenir', Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-align: center;
   color: #2c3e50;
-  margin-top: 60px;
+  margin-top: 230px;
+}
+.fixed-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  min-height: 120px;
+  background-color: white;
+  padding-top: 40px;
+  padding-left: 10px;
+  padding-right: 10px;
+}
+.info-button {
+  display: inline-block;
+  position: absolute;
+  top: 10px;
+  left: 10px;
+}
+.language-selector {
+  margin: 10px;
+}
+.search-field {
+
 }
 .tag-filters {
   margin: 10px;

@@ -1,7 +1,7 @@
 <template>
 	<div>
-		<input type="text" v-model="suggestion" disabled="disabled"/>
-		<input type="text" v-model="search" v-on:keyup.13="addTagFilter" v-bind:placeholder="searchPlaceholderText" />
+		<input v-bind:class="alignmentClass" type="text" v-model="suggestion" disabled="disabled"/>
+		<input v-bind:class="alignmentClass" type="text" v-model="search" v-on:keyup.13="addTagFilter" v-bind:placeholder="searchPlaceholderText" />
 	</div>
 </template>
 
@@ -23,6 +23,13 @@ export default {
 		}
 	},
 	computed: {
+		alignmentClass: function(){
+			if(this.lang == "AR"){
+				return "align-right";
+			} else {
+				return "align-left";
+			}
+		},
 		suggestion: function(){
 			if(this.search != ""){
 				var query = this.search;
@@ -63,14 +70,14 @@ div {
 	margin-right: auto;
 	position: relative;
 	display: block;
-	min-height: 62px;
+	min-height: 50px;
 	min-width: 220px;
 	max-width: 440px;
-	margin-top: 30px;
-	margin-bottom: 40px;
+	margin-top: 0;
+	margin-bottom: 0;
 }
 input {
-	font-size: 32px;
+	font-size: 28px;
 	position: absolute;
 	background: none;
 	top: 0;
@@ -92,5 +99,12 @@ input:focus::-webkit-input-placeholder { color:transparent; }
 input:focus:-moz-placeholder { color:transparent; } /* FF 4-18 */
 input:focus::-moz-placeholder { color:transparent; } /* FF 19+ */
 input:focus:-ms-input-placeholder { color:transparent; } /* IE 10+ */
+
+.align-left {
+	text-align: left;
+}
+.align-right {
+	text-align: right;
+}
 
 </style>
